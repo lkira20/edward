@@ -1,0 +1,166 @@
+<template>
+	<div>
+		
+		<div class="container">
+			<div class="card">
+				<div class="card-body">
+					<h1 class="text-center">Inventario</h1>
+					<div class="mb-3">
+						<button class="btn btn-primary " @click="get_inventario">Refrescar</button>
+					</div>
+
+					<table class="table table-bordered">
+						<thead>
+							<tr>
+								<th></th>
+								<th colspan="2">Al menor</th>
+								<th colspan="2">Al mayor</th>
+								<th></th>
+							</tr>
+							<tr>
+								<th rowspan="">Producto</th>
+								<th>Cantidad</th>
+								<th>Precio</th>
+								<th>Cantidad</th>
+								<th>Precio</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(producto, index) in productos" :key="index">
+								<td>{{producto.inventario.name}}</td>
+								<td>{{producto.cantidad_menor}}</td>
+								<td>{{producto.inventario.precio.total_menor}}</td>
+								<td>{{producto.cantidad_mayor}}</td>
+								<td>{{producto.inventario.precio.total_mayor}}</td>
+								<td>
+									<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#verDetalles">Detalles</button>
+								</td>
+
+								<!-- Modal PARA VER LOS DETALLES -->
+								<div class="modal fade" id="verDetalles" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+								  	<div class="modal-dialog modal-lg">
+								    	<div class="modal-content">
+								      		<div class="modal-header">
+								        		<h5 class="modal-title" id="exampleModalLabel">Detalles del producto</h5>
+								        		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								          		<span aria-hidden="true">&times;</span>
+								        		</button>
+								      		</div>
+								      		<div class="modal-body">
+								     			
+								      			<h5 class="text-center font-weight-bold">{{producto.inventario.name}}</h5>
+
+								      			<table class="table table-bordered">
+								      	
+								      				<thead>
+								      					<tr>
+								      						<th>propiedades</th>
+								      						<th>Al menor</th>
+								      						<th>Al mayor</th>
+
+								      					</tr>
+								      				</thead>
+
+								      				<tbody>
+								      					<tr>
+								      						<th>Unidad</th>
+								      						<td>{{producto.inventario.unit_type_menor}}</td>
+								      						<td>{{producto.inventario.unit_type_mayor}}</td>
+								      					</tr>
+
+								      					<tr>
+								      						<th>Cantidad</th>
+								      						<td>{{producto.cantidad_menor}}</td>
+								      						<td>{{producto.cantidad_mayor}}</td>
+								      					</tr>
+
+								      					<tr>
+								      						<td>Subtotal</td>
+								      						<td>{{producto.inventario.precio.sub_total_menor}}</td>
+								      						<td>{{producto.inventario.precio.sub_total_mayor}}</td>
+								      					</tr>
+
+								      					<tr>
+								      						<td>Iva</td>
+								      						<td>{{producto.inventario.precio.iva_menor}}</td>
+								      						<td>{{producto.inventario.precio.iva_mayor}}</td>
+								      					</tr>
+
+								      					<tr>
+								      						<td>Total</td>
+								      						<td>{{producto.inventario.precio.total_menor}}</td>
+								      						<td>{{producto.inventario.precio.total_mayor}}</td>
+								      					</tr>
+
+
+								      				</tbody>
+								      			</table>
+
+								      		</div>
+								      		<div class="modal-footer">
+								        		<button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button>
+								      		</div>
+								    	</div>
+								  	</div>
+								</div>
+							</tr>
+						</tbody>
+					</table>
+					{{currentPage}}
+					<div class="overflow-auto">
+						<b-pagination v-model="currentPage" @change="paginar($event)" :per-page="per_page"  :total-rows="total_paginas" size="sm"></b-pagination>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	export default{
+		data(){
+			return{
+				productos: [],
+				page: "",
+				currentPage: 0,
+				per_page: 0,
+				total_paginas: 0 
+			}
+		},
+		methods:{
+			get_inventario(){
+
+				axios.get('/api/get-inventario').then(response => {
+					//console.log(response.data);
+					this.per_page = response.data.per_page;
+					this.total_paginas = response.data.total;
+					this.productos = response.data.data
+
+					console.log(this.productos)
+				}).catch(e => {
+					console.log(e.response)
+				});
+			},
+			paginar(event){
+
+				axios.get('/api/get-inventario?page='+event).then(response => {
+					console.log(response.data)
+					this.per_page = response.data.per_page;
+					this.total_paginas = response.data.total;
+					this.productos = response.data.data
+			
+				}).catch(e => {
+					console.log(e.response)
+				});
+			}	
+		},
+		created(){
+			//console.log(this.productos)
+			this.get_inventario();
+
+
+		},
+		
+	}
+</script>
