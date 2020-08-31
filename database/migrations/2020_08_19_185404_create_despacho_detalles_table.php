@@ -17,7 +17,6 @@ class CreateDespachoDetallesTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('despacho_id');
             //$table->unsignedBigInteger('articulo_id');
-            $table->enum('tipo', ['1', '2'])->comment('1:al-menor,2:al-mayor');
             
             $table->integer('cantidad');
             

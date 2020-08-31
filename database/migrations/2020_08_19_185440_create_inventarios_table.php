@@ -17,12 +17,12 @@ class CreateInventariosTable extends Migration
             $table->bigIncrements('id');
             //$table->unsignedBigInteger('articulo_id');
             $table->string('name');
-            $table->decimal('quanty');
+            $table->decimal('quanty')->nullable();
             $table->string('unit_type_mayor');
             $table->string('unit_type_menor');
-            $table->integer('qty_per_unit');
-            $table->string('status')->default('2');
-            $table->integer('total_qty_prod');
+            $table->integer('qty_per_unit')->nullable();
+            $table->string('status')->default('2')->nullable();
+            $table->integer('total_qty_prod')->nullable();
             
             $table->timestamps();
             //$table->foreign('articulo_id')->references('id')->on('articulos');

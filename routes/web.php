@@ -55,4 +55,20 @@ Route::prefix('api')->group(function(){
 	Route::get('/ultimo-despacho', 'DespachosController@ultimo_despacho');
 	Route::post('/registrar-despachos-piso-venta', 'DespachosController@registrar_despacho_piso_venta');
 
+	//DESPACHOS ALMACEN
+	Route::get('/despachos-datos-create', 'DespachosController@get_datos_create');
+	Route::post('/despachos', 'DespachosController@store');
+	Route::get('/get-despachos-almacen', 'DespachosController@get_despachos_almacen');
+	Route::post('/despachos-retiro', 'DespachosController@store_retiro');
+	Route::get('/inventario-piso-venta/{id}', 'DespachosController@get_datos_inventario_piso_venta');
+
+	//VENTAS
+	Route::get('/get-ventas', 'VentasController@get_ventas');
+	Route::get('/ventas-datos-create', 'VentasController@get_datos_create');
+	Route::post('/ventas', 'VentasController@store');
+	//VENTA REFRESCAR
+	Route::get('/get-piso-venta-id', 'VentasController@get_piso_venta_id');
+	Route::get('/ultima-venta/{piso_venta}', 'VentasController@ultima_venta');//WEB
+	Route::get('/ventas-sin-registrar/{piso_venta}/{id}', 'VentasController@ventas_sin_registrar');
+	Route::post('/registrar-ventas', 'VentasController@registrar_ventas');//WEB
 });

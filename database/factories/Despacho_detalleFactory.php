@@ -11,7 +11,6 @@ $factory->define(Despacho_detalle::class, function (Faker $faker) {
     return [
         //
         'despacho_id' => Despacho::all()->random()->id,
-        'tipo' => $faker->randomElement([1, 2]),
         'inventory_id' => Inventory::all()->random()->id,
         'cantidad' => $faker->numberBetween($min = 3, $max = 20)
     ];

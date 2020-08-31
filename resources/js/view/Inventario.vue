@@ -12,15 +12,7 @@
 					<table class="table table-bordered">
 						<thead>
 							<tr>
-								<th></th>
-								<th colspan="2">Al menor</th>
-								<th colspan="2">Al mayor</th>
-								<th></th>
-							</tr>
-							<tr>
 								<th rowspan="">Producto</th>
-								<th>Cantidad</th>
-								<th>Precio</th>
 								<th>Cantidad</th>
 								<th>Precio</th>
 								<th>Acciones</th>
@@ -29,10 +21,8 @@
 						<tbody>
 							<tr v-for="(producto, index) in productos" :key="index">
 								<td>{{producto.inventario.name}}</td>
-								<td>{{producto.cantidad_menor}}</td>
+								<td>{{producto.cantidad}}</td>
 								<td>{{producto.inventario.precio.total_menor}}</td>
-								<td>{{producto.cantidad_mayor}}</td>
-								<td>{{producto.inventario.precio.total_mayor}}</td>
 								<td>
 									<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#verDetalles">Detalles</button>
 								</td>
@@ -56,41 +46,40 @@
 								      				<thead>
 								      					<tr>
 								      						<th>propiedades</th>
-								      						<th>Al menor</th>
-								      						<th>Al mayor</th>
+								      						<th>Valores</th>
 
 								      					</tr>
 								      				</thead>
 
 								      				<tbody>
 								      					<tr>
+								      						<th>Cantidad</th>
+								      						<td>{{producto.cantidad}}</td>
+								      				
+								      					</tr>
+								      					
+								      					<tr>
 								      						<th>Unidad</th>
 								      						<td>{{producto.inventario.unit_type_menor}}</td>
-								      						<td>{{producto.inventario.unit_type_mayor}}</td>
-								      					</tr>
-
-								      					<tr>
-								      						<th>Cantidad</th>
-								      						<td>{{producto.cantidad_menor}}</td>
-								      						<td>{{producto.cantidad_mayor}}</td>
+								      					
 								      					</tr>
 
 								      					<tr>
 								      						<td>Subtotal</td>
 								      						<td>{{producto.inventario.precio.sub_total_menor}}</td>
-								      						<td>{{producto.inventario.precio.sub_total_mayor}}</td>
+								      					
 								      					</tr>
 
 								      					<tr>
 								      						<td>Iva</td>
 								      						<td>{{producto.inventario.precio.iva_menor}}</td>
-								      						<td>{{producto.inventario.precio.iva_mayor}}</td>
+								      					
 								      					</tr>
 
 								      					<tr>
 								      						<td>Total</td>
 								      						<td>{{producto.inventario.precio.total_menor}}</td>
-								      						<td>{{producto.inventario.precio.total_mayor}}</td>
+								      			
 								      					</tr>
 
 

@@ -21,7 +21,6 @@ class Venta extends Model
     {
         return $this->belongsToMany('App\Inventario', 'detalle_ventas')->using('App\Detalle_venta')->withPivot([
                             'cantidad',
-                            'tipo',
                             'sub_total',
                             'iva',
                             'total'

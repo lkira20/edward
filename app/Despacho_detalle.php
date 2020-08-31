@@ -13,4 +13,6 @@ class Despacho_detalle extends Pivot
     ];
 
     protected $table = "despacho_detalles";
+
+
 }

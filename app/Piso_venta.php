@@ -20,8 +20,7 @@ class Piso_venta extends Model
     public function inventario()
     {
     	return $this->belongsToMany('App\Inventario', 'inventario_piso_ventas')->using('App\Inventario_piso_venta')->withPivot([
-                            'cantidad_menor',
-                            'cantidad_mayor',
+                            'cantidad'
                         ]);
     }
 

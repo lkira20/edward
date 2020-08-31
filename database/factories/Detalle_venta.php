@@ -16,7 +16,6 @@ $factory->define(Detalle_venta::class, function (Faker $faker) {
         //
         'inventario_id' => Inventario::all()->random()->id,
         'venta_id' => Venta::all()->random()->id,
-        'tipo' => $faker->randomElement([1, 2]),
         'cantidad' => $faker->numberBetween($min = 3, $max = 20),
         'sub_total' => $subtotal,
         'iva' => $iva,

@@ -11,7 +11,7 @@ class Detalle_venta extends Pivot
 	protected $table = 'detalle_ventas';
 
 	protected $fillable = [
-        'sub_total', 'iva', 'total', 'inventario_id', 'tipo', 'cantidad', 'venta_id'
+        'sub_total', 'iva', 'total', 'inventario_id', 'cantidad', 'venta_id'
     ];
 
     public function piso_venta() {

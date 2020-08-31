@@ -11,10 +11,10 @@
 							</div>
 							<div class="col-12 col-md-4">
 								<div class="ml-auto">
-									<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-nuevo-despacho">
+									<button type="button" class="btn btn-primary" @click="showModalNuevo">
 									  Nuevo
 									</button>
-									<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modalRetiro">Retirar</button>
+									<button type="button" class="btn btn-danger" @click="showModalRetiro">Retirar</button>
 								</div>
 							</div>		
 							
@@ -32,14 +32,17 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr>
-								<td>FC-00</td>
-								<th>la segundera</th>
-								<td>Despacho</td>
-								<td class="small font-weight-bold">No se ha confirmado</td>
+							<tr v-for="(despacho, index) in despachos" :key="index">
+								<td>{{despacho.created_at}} {{despacho.id}}</td>
+								<td>{{despacho.piso_venta.nombre}}</td>
+								<th>{{despacho.type == 1? "despacho" : "retiro"}}</th>		
+								<td v-if="despacho.confirmado == null" class="small font-weight-bold">No se ah confirmado</td>
+								<td v-else class="small font-weight-bold">{{despacho.confirmado == 1 ? "confirmado" : "negado"}}</td>
 								<td>
 									<button class="btn btn-primary" data-toggle="modal" data-target="#modalVer">Ver</button>
+
 								</td>
+
 								<!-- Modal PARA VER LOS DETALLES -->
 								<div class="modal fade" id="modalVer" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 								  	<div class="modal-dialog">
@@ -56,15 +59,15 @@
 											<thead>
 												<tr>
 													<th>Producto</th>
-													<th>Tipo</th>
 													<th>cantidad</th>
 												</tr>
 											</thead>
 											<tbody>
-												<tr>
-													<td>Harina pan</td>
-													<td>Al menor</td>
-													<td>10</td>
+												<tr v-for="(product, index) in despacho.productos" :key="index">
+													<td>{{product.product_name}}</td>
+													<td v-if="product.pivot.tipo == 1">al menor</td>
+													<td v-if="product.pivot.tipo == 2">al mayor</td>
+													<td>{{product.pivot.cantidad}}</td>
 												</tr>
 											</tbody>
 										</table>
@@ -77,71 +80,47 @@
 								  	</div>
 								</div>
 							</tr>
-							<tr>
-								<td>FC-00</td>
-								<th>la segundera</th>
-								<td>retiro</td>
-								<td class="small font-weight-bold">confirmado</td>
-								<td>
-									<button class="btn btn-primary">Ver</button>
-								</td>
-							</tr>
-							<tr>
-								<td>FC-00</td>
-								<th>la segundera</th>
-								<td>Despacho</td>
-								<td class="small font-weight-bold">Denegado</td>
-								<td>
-									<button class="btn btn-primary">Ver</button>
-								</td>
-							</tr>
+
 						</tbody>
 					</table>
+
+					<div class="overflow-auto">
+						<b-pagination v-model="currentPage" @change="paginar($event)" :per-page="per_page"  :total-rows="total_paginas" size="sm"></b-pagination>
+					</div>
 				</div>
 			</div>
 		</div>
 
 
 		<!-- Modal NUEVO DESPACHO-->
-		<div class="modal fade" id="modal-nuevo-despacho" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-			<div class="modal-dialog modal-lg">
-		    	<div class="modal-content">
-		      		<div class="modal-header">
-			        	<h5 class="modal-title" id="exampleModalLabel">Hacer un nuevo despacho</h5>
-			        	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-			         	<span aria-hidden="true">&times;</span>
-			        	</button>
-		      		</div>
-		      		<form action="/despachos-almacen" method="post"><!--Formulario-->
-			      	<div class="modal-body">
-				        <select class="form-control">
-						  <option>Seleccione un piso de venta</option>
+		<b-modal id="modal-nuevo" size="lg" title="Realizar un nuevo despacho" hide-footer>
+		
+		      		<form action="/despachos-almacen" method="post" @submit.prevent="despachar()"><!--Formulario-->
+			      	
+				        <select class="form-control" v-model="piso_venta">
+						  <option value="">Seleccione un piso de venta</option>
+						  <option v-for="(piso, index) in piso_ventas" :key="index" :value="piso.id">{{piso.nombre}}</option>
 						</select>
 
 						<input type="hidden" name="tipo" value="1"><!--ESTABLECER SI ES UN DESPACHO O UN RETIRO-->
 
 						<div class="form-row">
-							<div class="form-group col-md-3">
+							<div class="form-group col-md-4">
 								<label for="producto">Producto:</label>
-							    <select class="form-control">
-								  <option>Seleecion producto</option>
+							    <select class="form-control" v-model="articulo.id" @change="establecer_nombre(articulo.id)">
+								  <option value="0">Seleecion producto</option>
+								  <option v-for="(prod, index) in inventario" :key="index" :value="prod.id">{{prod.product_name}}</option>
 								</select>
 							</div>
 
-							<div class="form-group col-md-3">
-								<label>Tipo de despacho:</label><br>
-								<select class="form-control">
-								  <option>Seleecione el tipo</option>
-								</select>
-							</div>
-							<div class="form-group col-md-3">
-								<label for="cantidad">Cantidad:</label>
-								<input type="number" name="cantidad" id="cantidad" placeholder="Cantidad" class="form-control">
+							<div class="form-group col-md-4">
+								<label for="cantidad">Cantidad al menor:</label>
+								<input type="number" name="cantidad" id="cantidad" placeholder="Cantidad" class="form-control" v-model="articulo.cantidad">
 							</div>
 
-							<div class="form-group col-md-3">
+							<div class="form-group col-md-4">
 								<label class="text-center" for="">Acción:</label><br>
-								<button class="btn btn-primary btn-block">Agregar</button>
+								<button class="btn btn-primary btn-block" type="button" @click="agregar_producto">Agregar</button>
 							</div>
 						</div>
 
@@ -149,78 +128,61 @@
 							<thead>
 								<tr>
 									<th>Producto</th>
-									<th>Tipo</th>
 									<th>cantidad</th>
 									<th>Acciones</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr>
-									<td>Harina pan</td>
-									<td>Al menor</td>
-									<td>10</td>
+								<tr v-for="(produc_enviar, index) in productos" :key="index">
+									<td>{{produc_enviar.nombre}}</td>
+									<td>{{produc_enviar.cantidad}}</td>
 									<td>
-										<button class="btn btn-danger">Eliminar</button>
+										<button class="btn btn-danger" type="button" @click="eliminar(index)">Eliminar</button>
 									</td>
 								</tr>
 							</tbody>
 						</table>
-			      	</div>
+			      	
 			      	<div class="modal-footer">
-			        	<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 			        	<button type="submit" class="btn btn-primary" data-dismiss="modal">Despachar</button>
 			      	</div>
 			      	</form>
-		    	</div>
-		  	</div>
-		</div>
+
+		</b-modal>
 
 
 		<!-- Modal RETIRO DESPACHO-->
-		<div class="modal fade" id="modalRetiro" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-			<div class="modal-dialog modal-lg">
-		    	<div class="modal-content">
-		      		<div class="modal-header">
-			        	<h5 class="modal-title" id="example">Retirar productos de los pisos de venta</h5>
-			        	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-			         	<span aria-hidden="true">&times;</span>
-			        	</button>
-		      		</div>
-		      		<form action="/despachos-almacen" method="post"><!--Formulario-->
-			      	<div class="modal-body">
-				        <select class="form-control">
-						  <option>Seleccione un piso de venta</option>
+		<b-modal id="modal-retiro" size="lg" title="Retirar productos de algun piso de venta" hide-footer>
+		
+		      		<form action="/despachos-almacen" method="post" @submit.prevent="retirar()"><!--Formulario-->
+			      	
+				        <select class="form-control" v-model="piso_venta_retiro" @change="buscar_inventario">
+						  <option value="">Seleccione un piso de venta</option>
+						  <option v-for="(piso, index) in piso_ventas" :key="index" :value="piso.id">{{piso.nombre}}</option>
 						</select>
-
-						<input type="hidden" name="tipo" value="2"><!--ESTABLECER SI ES UN DESPACHO O UN RETIRO-->
 
 						<div class="form-row">
 							<div class="form-group col-md-3">
 								<label for="producto">Producto:</label>
-							    <select class="form-control">
-								  <option>Seleecion producto</option>
+							    <select class="form-control" v-model="articulo_retiro.id" @change="establecer_nombre_retiro(articulo_retiro.id)" :disabled="disab">
+								  <option value="">Seleecion producto</option>
+								  <option v-for="(prod, index) in inventario_piso_venta" :key="index" :value="prod.inventory_id">{{prod.name}}</option>
 								</select>
 							</div>
 
 							<div class="form-group col-md-3">
-								<label>Tipo:</label><br>
-								<select class="form-control">
-								  <option>mayor o menor</option>
-								</select>
-							</div>
-							<div class="form-group col-md-2">
-								<label for="cantidad">Cantidad:</label>
-								<input type="number" name="cantidad" id="cantidad" placeholder="Cantidad" class="form-control" disabled>
+								<label for="cantidad">Cantidad disponible:</label>
+								<input type="number" name="cantidad_disponible" id="cantidad" placeholder="Cantidad disponible" class="form-control" v-model="inventario_cantidad_piso" disabled>
 							</div>
 
-							<div class="form-group col-md-2">
-								<label for="cantidad_retirar">retirar:</label>
-								<input type="number" name="cantidad_retirar" id="cantidad-retirar" placeholder="retirar" class="form-control">
+							<div class="form-group col-md-3">
+								<label for="cantidad">Cantidad al menor:</label>
+								<input type="number" name="cantidad" id="cantidad" placeholder="Cantidad" class="form-control" v-model="articulo_retiro.cantidad">
 							</div>
 
-							<div class="form-group col-md-2">
+							<div class="form-group col-md-3">
 								<label class="text-center" for="">Acción:</label><br>
-								<button class="btn btn-primary btn-block">Agregar</button>
+								<button class="btn btn-primary btn-block" type="button" @click="agregar_producto('retiro')">Agregar</button>
 							</div>
 						</div>
 
@@ -228,31 +190,27 @@
 							<thead>
 								<tr>
 									<th>Producto</th>
-									<th>Tipo</th>
 									<th>cantidad</th>
 									<th>Acciones</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr>
-									<td>Harina pan</td>
-									<td>Al menor</td>
-									<td>10</td>
+								<tr v-for="(produc_enviar, index) in productos_retirar" :key="index">
+									<td>{{produc_enviar.nombre}}</td>
+									<td>{{produc_enviar.cantidad}}</td>
 									<td>
-										<button class="btn btn-danger">Eliminar</button>
+										<button class="btn btn-danger" type="button" @click="eliminar(index,'retiro')">Eliminar</button>
 									</td>
 								</tr>
 							</tbody>
 						</table>
-			      	</div>
+			      	
 			      	<div class="modal-footer">
-			        	<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-			        	<button type="submit" class="btn btn-primary" data-dismiss="modal">Despachar</button>
+			        	<button type="submit" class="btn btn-primary" data-dismiss="modal">Retirar</button>
 			      	</div>
 			      	</form>
-		    	</div>
-		  </div>
-		</div>
+
+		</b-modal>
 
 
 
@@ -261,6 +219,182 @@
 
 <script>
 	export default{
-		
+		data(){
+			return{
+				despachos: [],
+				piso_ventas: [],
+				inventario: [],
+				productos: [],//LISTA DE PRODUCTOS QUE VOY A AGREGAR
+				articulo: {
+					id: 0,
+					nombre: "",
+					cantidad: ""
+				},
+				piso_venta: "",
+				currentPage: 0,
+				per_page: 0,
+				total_paginas: 0,
+				produc_cantidad: "",
+				productos_retirar: [],
+				piso_venta_retiro: "",
+				inventario_piso_venta: [],
+				disab: true,
+				inventario_cantidad_piso: "",
+				articulo_retiro: {
+					id: "",
+					nombre: "",
+					cantidad: ""
+				},
+			}
+		},
+		methods:{
+			get_despachos(){
+
+				axios.get('/api/get-despachos-almacen').then(response => {
+					//console.log(response.data);
+					this.per_page = response.data.per_page;
+					this.total_paginas = response.data.total;
+					this.despachos = response.data.data
+
+					console.log(this.despachos)
+				}).catch(e => {
+					console.log(e.response)
+				});
+			},
+			get_datos(){
+				//SOLICITO LOS PISOS DE VENTAS Y PRODUCTOS
+				axios.get('/api/despachos-datos-create').then(response => {
+
+					console.log(response);
+					this.piso_ventas = response.data.piso_ventas
+					this.inventario = response.data.productos
+				}).catch(e => {
+
+				});
+			},
+			establecer_nombre(id, valor){//COLOCAR EL NOMBRE AL PRODUCTO QUE ESTOY AGREGANDO
+				let resultado = this.inventario.find(element => element.id == id)
+				this.articulo.nombre = resultado.product_name;
+				//console.log(this.articulo.nombre);
+				if(valor == "retiro"){
+
+					this.produc_cantidad = resultado.total_qty_prod;
+				}
+			},
+			agregar_producto(retiro){
+
+				if (retiro == "retiro") {
+
+					this.productos_retirar.push(this.articulo_retiro)
+					this.articulo_retiro = {id: "", nombre: "", cantidad: ""};
+				}else{	
+					this.productos.push(this.articulo);
+					
+					//console.log(this.productos)
+					this.articulo = {id: 0, nombre: "", cantidad: ""};
+				}
+
+				
+			},
+			eliminar(index, retiro){
+				if (retiro == "retiro") {
+
+					this.productos_retirar.splice(index, 1);
+				}else{
+				this.productos.splice(index, 1);
+				}
+			},
+			showModalNuevo(){
+				
+				this.get_datos();
+				this.$bvModal.show("modal-nuevo")
+			},
+			despachar(){
+
+				axios.post('/api/despachos', {productos: this.productos, piso_venta: this.piso_venta}).then(response => {
+					console.log(response)
+					this.articulo = {id: 0, nombre: "", cantidad: ""};
+					this.despachos.splice(0,0, response.data);
+					this.productos = [];
+				}).catch(e => {
+
+					console.log(e.response)
+				})
+
+				this.$bvModal.hide("modal-nuevo")
+			},
+			retirar(){
+
+				axios.post('/api/despachos', {productos: this.productos, piso_venta: this.piso_venta}).then(response => {
+					console.log(response)
+					this.articulo = {id: 0, nombre: "", cantidad: ""};
+					this.despachos.splice(0,0, response.data);
+					this.productos = [];
+				}).catch(e => {
+
+					console.log(e.response)
+				})
+
+				this.$bvModal.hide("modal-retiro")
+			},
+			paginar(event){
+
+				axios.get('/api/get-despachos-almacen?page='+event).then(response => {
+					console.log(response.data)
+					this.per_page = response.data.per_page;
+					this.total_paginas = response.data.total;
+					this.despachos = response.data.data
+			
+				}).catch(e => {
+					console.log(e.response)
+				});
+			},
+			showModalRetiro(){//MODAL PARA RETIRAR DE UN ALMACEN
+
+				this.get_datos();
+				this.$bvModal.show("modal-retiro")
+			},
+			get_datos_retiro(){
+
+
+			},
+			retirar(){
+
+				axios.post('/api/despachos-retiro', {productos: this.productos_retirar, piso_venta: this.piso_venta_retiro}).then(response => {
+					console.log(response)
+					this.articulo_retiro = {id: "", nombre: "", cantidad: ""};
+					this.despachos.splice(0,0, response.data);
+					this.productos_retirar = [];
+				}).catch(e => {
+
+					console.log(e.response)
+				})
+
+				this.$bvModal.hide("modal-retiro")
+			},
+			buscar_inventario(){
+				//console.log(this.piso_venta_retiro)
+				
+				axios.get('/api/inventario-piso-venta/'+this.piso_venta_retiro).then(response => {
+					console.log(response)
+					this.inventario_piso_venta = response.data
+					this.disab = false;
+
+				}).catch(e => {
+					console.log(e.response)
+				});
+				
+			},
+			establecer_nombre_retiro(id){
+
+				let resultado = this.inventario_piso_venta.find(element => element.inventory_id == id)
+				this.articulo_retiro.nombre = resultado.name;
+				this.inventario_cantidad_piso = resultado.piso_venta[0].pivot.cantidad
+			}
+		},
+		created(){
+
+			this.get_despachos();
+		}
 	}
 </script>

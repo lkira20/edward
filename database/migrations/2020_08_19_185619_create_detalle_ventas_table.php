@@ -17,11 +17,11 @@ class CreateDetalleVentasTable extends Migration
             $table->bigIncrements('id');
             
             $table->unsignedBigInteger('inventario_id');
-            $table->enum('tipo', ['1', '2'])->comment('1:al-menor,2:al-mayor');
             $table->integer('cantidad');
-            $table->decimal('sub_total');
+            $table->decimal('sub_total', 12);
             $table->integer('iva');
-            $table->decimal('total', 10, 2);
+            $table->decimal('total', 12, 2);
+            //$table->enum('tipo', ['1', '2'])->comment('1:al-menor,2:al-mayor')->nullable();
             $table->unsignedBigInteger('venta_id');
             $table->timestamps();
 

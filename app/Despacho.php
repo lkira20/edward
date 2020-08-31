@@ -8,7 +8,7 @@ class Despacho extends Model
 {
     //
     protected $fillable = [
-        'piso_venta_id', 'type', 'confirmado'
+        'piso_venta_id', 'confirmado'
     ];
 
     public function piso_venta()
@@ -19,8 +19,7 @@ class Despacho extends Model
     public function productos()
     {
     	return $this->belongsToMany('App\Inventory', 'despacho_detalles')->withPivot([
-                            'cantidad',
-                            'tipo',
+                            'cantidad'
                         ]);
     }
 }

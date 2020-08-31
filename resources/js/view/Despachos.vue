@@ -1,13 +1,17 @@
 <template>
 	<div>	
 		<div class="container">
+
+			<!--ALERT DE EXITO-->
+		    <b-alert show variant="success" fade dismissible v-if="alert_success == true">{{alert_message}}</b-alert>
+		   <!---->
 			<div class="card">
 				<div class="card-body">
 					<h1 class="text-center">Despachos-pisos</h1>
 					<div class="mb-3">
 						<div class="row justify-content-between">
 							<div class="col-12 col-md-2">			
-								<button class="btn btn-primary " @click="refrescar">Refrescar</button>
+								<button class="btn btn-primary " @click="refrescar">Sincronizar</button>
 							</div>
 							<div class="col-12 col-md-2">
 							</div>		
@@ -95,7 +99,9 @@
 				currentPage: 0,
 				per_page: 0,
 				total_paginas: 0,
-				id: 0
+				id: 0,
+				alert_success: false,
+				alert_message : ""
 			}
 		},
 		methods:{
@@ -155,6 +161,8 @@
 				});
 			},
 			refrescar(){
+				this.alert_success = false;
+
 				let ultimoDespacho = 0;
 				let nuevosDespachos = [];
 				let despachosSinConfirmar = [];
@@ -169,19 +177,32 @@
 					axios.post('/api/get-despachos-web', {piso_venta_id: this.id, ultimo_despacho: ultimoDespacho}).then(response => {//DEL LADO DE LA WEB
 
 						nuevosDespachos = response.data;
-				
+						console.log(nuevosDespachos)
+						/*
+						if (nuevosDespachos.id == null) {
+						console.log(nuevosDespachos)
+						}else{
+							console.log("hay algo")
+						}
+						*/
 						if (nuevosDespachos.length > 0) {
 
 							//REGISTRAR LOS DESPACHOS RECIBIDOS
 							axios.post('/api/registrar-despachos-piso-venta', {despachos: nuevosDespachos}).then(response => {//
 					
-								//console.log(response);//SI REGISTRA DEBERIA DAR TRUE
-
+								console.log(response);//SI REGISTRA DEBERIA DAR TRUE
+								if (response.data == true) {
+									this.alert_success = true;
+									this.alert_message = "sincronizacion exitosa nuevos despachos registrados"
+								}
 							}).catch(e => {
 								console.log(e.response)
 							});
 
 						}
+
+						this.alert_success = true;
+						this.alert_message = "No hay despachos para sincronizar"
 
 						//PEDIR DE LA WEB LOS DESPACHOS QUE NO ESTAN CONFIRMADOS
 						axios.get('/api/get-despachos-sin-confirmacion/'+this.id).then(response => {//DEL LADO DE LA WEB
@@ -195,10 +216,11 @@
 								despachosConfirmados = response.data
 								//console.log(response.data);
 								//GUARDAR LOS DATOS ANTERIORES EN LA WEB
-								axios.post('/api/actualizar-confirmados', {despachos: despachosConfirmados}).then(response => {//DEL LADO DE LA WEB PARA ACTUALIZAR LAS CONFIRMACIONES
+								axios.post('/api/actualizar-confirmados', {despachos: despachosConfirmados, piso_venta_id: this.id}).then(response => {//DEL LADO DE LA WEB PARA ACTUALIZAR LAS CONFIRMACIONES
 						
 								console.log(response);
-
+								this.alert_success = true;
+								//this.alert_message += " nuevos datos confirmados"
 								}).catch(e => {
 									console.log(e.response)
 								});
