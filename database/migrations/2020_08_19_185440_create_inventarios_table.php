@@ -18,7 +18,7 @@ class CreateInventariosTable extends Migration
             //$table->unsignedBigInteger('articulo_id');
             $table->string('name');
             $table->decimal('quanty')->nullable();
-            $table->string('unit_type_mayor');
+            $table->string('unit_type_mayor')->nullable();
             $table->string('unit_type_menor');
             $table->integer('qty_per_unit')->nullable();
             $table->string('status')->default('2')->nullable();

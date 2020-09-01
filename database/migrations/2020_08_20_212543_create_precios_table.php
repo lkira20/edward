@@ -20,10 +20,10 @@ class CreatePreciosTable extends Migration
             $table->integer('iva_menor');
             $table->decimal('sub_total_menor', 10, 2);
             $table->decimal('total_menor', 10, 2);
-            $table->integer('iva_mayor');
-            $table->decimal('sub_total_mayor', 10, 2);
-            $table->decimal('total_mayor', 10, 2);
-            $table->boolean('oferta')->default(0);
+            $table->integer('iva_mayor')->nullable();
+            $table->decimal('sub_total_mayor', 10, 2)->nullable();
+            $table->decimal('total_mayor', 10, 2)->nullable();
+            $table->boolean('oferta')->default(0)->nullable();
             $table->unsignedBigInteger('inventario_id');
             $table->timestamps();
 

@@ -2,11 +2,15 @@
 	<div>
 		
 		<div class="container">
+			<!--ALERT DE EXITO-->
+		    <b-alert show variant="success" fade dismissible v-if="alert_success == true">{{alert_message}}</b-alert>
+		   <!---->
 			<div class="card">
 				<div class="card-body">
 					<h1 class="text-center">Inventario</h1>
 					<div class="mb-3">
-						<button class="btn btn-primary " @click="get_inventario">Refrescar</button>
+						<button class="btn btn-primary" type="button" @click="refrescar">Refrescar</button>
+					
 					</div>
 
 					<table class="table table-bordered">
@@ -114,7 +118,9 @@
 				page: "",
 				currentPage: 0,
 				per_page: 0,
-				total_paginas: 0 
+				total_paginas: 0,
+				alert_success: false,
+				alert_message: ""
 			}
 		},
 		methods:{
@@ -142,7 +148,61 @@
 				}).catch(e => {
 					console.log(e.response)
 				});
-			}	
+			},
+			refrescar(){
+				this.alert_success = false;
+				//ULTIMO PRODUCTO DE INVENTORY REGISTRADO
+				axios.get('/api/ultimo-inventory').then(response => {
+					//console.log(response.data)
+					let ultimoInventory = response.data
+					//TRAEMOS DE LA WEB TODOS LOS PRODUCTOS APARTIR DEL ULTIMO ID
+					axios.get('/api/get-inventory/'+ultimoInventory).then(response => {//WEB
+
+						//console.log(response)
+						let productos = response.data
+						//REGISTRAMOS LOS NUEVOS PRODUCTOS
+						if (productos.length > 0) {
+
+							console.log("hay que registrar")
+							axios.post('/api/registrar-inventory', {productos: productos}).then(response => {
+
+								if (response.data == true) {
+									console.log("productos registrados exitosamente")
+									this.alert_message = "productos registrados exitosamente"
+									this.alert_success = true
+								}
+							}).catch(e => {
+								console.log(e.response)
+							});
+
+						}else{
+							console.log("no hay productos para registrar")
+						}
+
+						//ACTUALIZAMOS LOS PRECIOS
+
+						axios.get('/api/get-precios-inventory').then(response => {//WEB
+
+							console.log(response)
+							let articulos = response.data
+
+							axios.post('/api/actualizar-precios-inventory', {productos: articulos}).then(response => {
+
+								console.log(response.data)
+							}).catch(e => {
+								console.log(e.response)
+							});
+						}).catch(e => {
+							console.log(e.response)
+						});
+					}).catch(e => {
+						console.log(e.response)
+					});
+			
+				}).catch(e => {
+					console.log(e.response)
+				});
+			}
 		},
 		created(){
 			//console.log(this.productos)

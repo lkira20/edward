@@ -42,6 +42,12 @@ Route::prefix('api')->group(function(){
 	Route::get('/get-id', 'UsersController@get_id');	
 	//INVENTARIO
 	Route::get('/get-inventario', 'InventarioController@get_inventario');
+	Route::get('/ultimo-inventory', 'InventarioController@ultimo_inventory');
+	Route::get('/get-inventory/{id}', 'InventarioController@get_inventory');//WEB
+	Route::post('/registrar-inventory', 'InventarioController@store_inventory');
+	Route::get('/get-precios-inventory', 'InventarioController@get_precios_inventory');//WEB
+	Route::post('/actualizar-precios-inventory', 'InventarioController@actualizar_precios_inventory');
+
 
 	//DESPACHOS
 	Route::get('/get-despachos', 'DespachosController@get_despachos');
@@ -66,6 +72,7 @@ Route::prefix('api')->group(function(){
 	Route::get('/get-ventas', 'VentasController@get_ventas');
 	Route::get('/ventas-datos-create', 'VentasController@get_datos_create');
 	Route::post('/ventas', 'VentasController@store');
+	Route::post('/ventas-comprar', 'VentasController@store_compra');
 	//VENTA REFRESCAR
 	Route::get('/get-piso-venta-id', 'VentasController@get_piso_venta_id');
 	Route::get('/ultima-venta/{piso_venta}', 'VentasController@ultima_venta');//WEB

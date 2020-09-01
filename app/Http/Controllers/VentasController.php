@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Inventario_piso_venta;
 use App\Detalle_venta;
 use DB;
+use App\Inventario;
+use App\Precio;
 
 class VentasController extends Controller
 {
@@ -44,7 +46,7 @@ class VentasController extends Controller
 			DB::beginTransaction();
 	    	$venta = new Venta();	
 	        $venta->piso_venta_id = $usuario;
-	        $venta->type = $request->venta['type']; // 1 ES VENTA
+	        $venta->type = 1; // 1 ES VENTA
 	        $venta->sub_total = $request->venta['sub_total'];
 	        $venta->iva = $request->venta['iva'];
 	        $venta->total = $request->venta['total'];
@@ -77,6 +79,75 @@ class VentasController extends Controller
 	            	
 	            }
 
+	            $inventario->save();
+	        }
+
+	        DB::commit();
+
+	        $venta = Venta::with('detalle')->findOrFail($venta->id);
+
+	        return response()->json($venta);
+	    	
+		}catch(Exception $e){
+
+			DB::rollback();
+			return response()->json($e);
+		}
+    }
+
+    public function store_compra(Request $request)
+    {
+    	$usuario = Auth::user()->piso_venta->id;
+    	try{
+
+			DB::beginTransaction();
+	    	$venta = new Venta();	
+	        $venta->piso_venta_id = $usuario;
+	        $venta->type = 2; // 1 ES VENTA 2 ES COMPRA
+	        $venta->sub_total = $request->venta['sub_total'];
+	        $venta->iva = $request->venta['iva'];
+	        $venta->total = $request->venta['total'];
+
+	        $venta->save();
+
+	        $venta->id_extra = $venta->id;
+	        $venta->save();
+
+	        foreach ($request->productos as $producto) {
+	        	//REGISTRAMOS EL PRODUCTO
+	        	 $articulo = new Inventario();
+                $articulo->name = $producto['nombre'];
+                //$articulo->unit_type_mayor = $producto['unit_type'];
+                $articulo->unit_type_menor = $producto['unidad'];
+                //$articulo->inventory_id = $producto['pivot']['inventory_id'];
+                $articulo->status = 1;
+                $articulo->save();
+                //REGISTRAMOS LOS PRECIOS
+                $precio = new Precio();
+                $precio->costo = $producto['costo'];
+                $precio->iva_porc = $producto['iva_porc'];
+                $precio->iva_menor = $producto['iva_unitario'];
+                $precio->sub_total_menor = $producto['sub_total_unitario'];
+                $precio->total_menor = $producto['total_unitario'];
+                $precio->inventario_id = $articulo->id;
+                $precio->save();
+
+
+	        	//REGISTRAMOS EL PRODUCTO EN LOS DETALLES DE LA VENTA
+	            $detalles = new Detalle_venta();
+	            $detalles->venta_id = $venta->id;
+	            $detalles->cantidad = $producto['cantidad'];
+	            $detalles->inventario_id = $articulo->id;
+	            $detalles->sub_total = $producto['sub_total'];
+		        $detalles->iva = $producto['iva'];
+		        $detalles->total = $producto['total'];
+	            $detalles->save();
+
+	            //SUMAMOS EL STOCK
+	            $inventario = new Inventario_piso_venta();
+	            $inventario->inventario_id = $articulo->id;
+	            $inventario->piso_venta_id = $usuario;
+	            $inventario->cantidad = $producto['cantidad'];
 	            $inventario->save();
 	        }
 
@@ -148,7 +219,7 @@ class VentasController extends Controller
 		            	$q->where('inventory_id', $producto['inventory_id']);
 		            })->orderBy('id', 'desc')->first();
 		            //SI NO ENCUENTRA EL PRODUCTO QUE LO REGISTRE
-		            /*
+		            
 		            if ($inventario->id == null) {
                         $articulo = new Inventario();
                         $articulo->name = $producto['name'];
@@ -163,9 +234,9 @@ class VentasController extends Controller
                         $inventario->cantidad = $producto['pivot']['cantidad'];
                         $inventario->save();
                     }else{
-					*/
+					
                     //SI ES UNA VENTA O UNA COMPRA
-                    if $venta->type == 1) {
+                    if ($venta->type == 1) {
 
                     	$resta = $inventario->cantidad -= $producto['pivot']['cantidad'];
                     }else{

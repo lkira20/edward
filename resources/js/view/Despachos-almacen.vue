@@ -228,7 +228,8 @@
 				articulo: {
 					id: 0,
 					nombre: "",
-					cantidad: ""
+					cantidad: "",
+					modelo: {}
 				},
 				piso_venta: "",
 				currentPage: 0,
@@ -243,7 +244,8 @@
 				articulo_retiro: {
 					id: "",
 					nombre: "",
-					cantidad: ""
+					cantidad: "",
+					modelo: {}
 				},
 			}
 		},
@@ -275,7 +277,8 @@
 			establecer_nombre(id, valor){//COLOCAR EL NOMBRE AL PRODUCTO QUE ESTOY AGREGANDO
 				let resultado = this.inventario.find(element => element.id == id)
 				this.articulo.nombre = resultado.product_name;
-				//console.log(this.articulo.nombre);
+				this.articulo.modelo = resultado
+				console.log(this.articulo);
 				if(valor == "retiro"){
 
 					this.produc_cantidad = resultado.total_qty_prod;
@@ -389,6 +392,7 @@
 
 				let resultado = this.inventario_piso_venta.find(element => element.inventory_id == id)
 				this.articulo_retiro.nombre = resultado.name;
+				this.articulo_retiro.modelo = resultado
 				this.inventario_cantidad_piso = resultado.piso_venta[0].pivot.cantidad
 			}
 		},
