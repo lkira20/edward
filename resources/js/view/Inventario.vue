@@ -5,13 +5,24 @@
 			<!--ALERT DE EXITO-->
 		    <b-alert show variant="success" fade dismissible v-if="alert_success == true">{{alert_message}}</b-alert>
 		   <!---->
-			<div class="card">
+			<div class="card shadow">
 				<div class="card-body">
 					<h1 class="text-center">Inventario</h1>
-					<div class="mb-3">
-						<button class="btn btn-primary" type="button" @click="refrescar">Refrescar</button>
+					<div class="mb-3 row justify-content-between">
+						<div class="col-md-3">
+							<!--<button class="btn btn-primary" type="button" @click="refrescar">Refrescar</button>-->
+						</div>
+						<div class="col-md-5">
+							<div class="form-inline">
+								<div class="form-group">
+									<input type="text" v-model="search" class="form-control d-inline" placeholder="Buscar producto" @change="get_inventario">
+									<button type="button" class="btn btn-primary" @click="get_inventario">Buscar</button>
+								</div>
+								
+							</div>
+						</div>
 					
-					</div>
+					</div>		 
 
 					<table class="table table-bordered">
 						<thead>
@@ -98,6 +109,10 @@
 								  	</div>
 								</div>
 							</tr>
+
+							<tr v-if="productos == []">
+								<td class="text-center">No hay productos registrados</td>
+							</tr>
 						</tbody>
 					</table>
 					{{currentPage}}
@@ -111,7 +126,12 @@
 </template>
 
 <script>
+
+
 	export default{
+		components: {
+			
+		},
 		data(){
 			return{
 				productos: [],
@@ -120,13 +140,15 @@
 				per_page: 0,
 				total_paginas: 0,
 				alert_success: false,
-				alert_message: ""
+				alert_message: "",
+				id: 0,
+				search: null
 			}
 		},
 		methods:{
 			get_inventario(){
 
-				axios.get('/api/get-inventario').then(response => {
+				axios.get('/api/get-inventario', {params:{search: this.search}}).then(response => {
 					//console.log(response.data);
 					this.per_page = response.data.per_page;
 					this.total_paginas = response.data.total;
@@ -156,7 +178,7 @@
 					//console.log(response.data)
 					let ultimoInventory = response.data
 					//TRAEMOS DE LA WEB TODOS LOS PRODUCTOS APARTIR DEL ULTIMO ID
-					axios.get('/api/get-inventory/'+ultimoInventory).then(response => {//WEB
+					axios.get('http://127.0.0.1:8000/api/get-inventory/'+ultimoInventory).then(response => {//WEB
 
 						//console.log(response)
 						let productos = response.data
@@ -181,7 +203,7 @@
 
 						//ACTUALIZAMOS LOS PRECIOS
 
-						axios.get('/api/get-precios-inventory').then(response => {//WEB
+						axios.get('http://127.0.0.1:8000/api/get-precios-inventory').then(response => {//WEB
 
 							console.log(response)
 							let articulos = response.data
@@ -202,12 +224,37 @@
 				}).catch(e => {
 					console.log(e.response)
 				});
+
+				//SICRONIZACION
+				axios.post('/api/sincronizacion', {id: this.id}).then(response => {
+					console.log(response);
+
+					axios.post('/api/sincronizacion', {id: this.id}).then(response => {//WEB
+						console.log(response);
+
+					}).catch(e => {
+						console.log(e.response);
+					});
+
+				}).catch(e => {
+					console.log(e.response);
+				});
+			},
+			get_id(){
+
+				axios.get('/api/get-id').then(response => {
+					
+					this.id = response.data;
+
+				}).catch(e => {
+					console.log(e.response)
+				});
 			}
 		},
 		created(){
 			//console.log(this.productos)
 			this.get_inventario();
-
+			this.get_id();
 
 		},
 		

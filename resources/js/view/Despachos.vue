@@ -5,13 +5,13 @@
 			<!--ALERT DE EXITO-->
 		    <b-alert show variant="success" fade dismissible v-if="alert_success == true">{{alert_message}}</b-alert>
 		   <!---->
-			<div class="card">
+			<div class="card shadow">
 				<div class="card-body">
 					<h1 class="text-center">Despachos-pisos</h1>
 					<div class="mb-3">
 						<div class="row justify-content-between">
 							<div class="col-12 col-md-2">			
-								<button class="btn btn-primary " @click="refrescar">Sincronizar</button>
+								<!--<button class="btn btn-primary " @click="refrescar">Sincronizar</button>-->
 							</div>
 							<div class="col-12 col-md-2">
 							</div>		
@@ -36,8 +36,8 @@
 								<td v-else class="small font-weight-bold">{{despacho.confirmado == 1 ? "confirmado" : "negado"}}</td>
 								<td>
 									<button class="btn btn-primary" data-toggle="modal" data-target="#modalVer">Ver</button>
-									<button class="btn btn-success" @click="confirmar(despacho.id, index)">confirmar</button>
-									<button class="btn btn-danger" @click="negar(despacho.id, index)">Negar</button>
+									<button class="btn btn-success" v-if="despacho.confirmado == null" @click="confirmar(despacho.id, index)">confirmar</button>
+									<button class="btn btn-danger" v-if="despacho.confirmado == null" @click="negar(despacho.id, index)">Negar</button>
 								</td>
 
 								<!-- Modal PARA VER LOS DETALLES -->
@@ -56,7 +56,6 @@
 											<thead>
 												<tr>
 													<th>Producto</th>
-													<th>Tipo</th>
 													<th>cantidad</th>
 												</tr>
 											</thead>
@@ -79,6 +78,9 @@
 								</div>
 							</tr>
 
+							<tr v-if="despachos == []">
+								<td class="text-center">No hay despachos registrados</td>
+							</tr>
 						</tbody>
 					</table>
 
@@ -170,11 +172,15 @@
 				//ULTIMO DESPACHO RECIBIDO
 				axios.get('/api/ultimo-despacho').then(response => {
 
-			
-					ultimoDespacho = response.data.id_extra;
+					//console.log(response)
+					//SI SE TRAJO ALGUN DESPACHO, ESTO QUITA EL ERROR DE LA PRIMERA VEZ YA QUE NO ABRA NINGUN REGISTRO previo
+					if (response.data.id_extra != null) {
+						ultimoDespacho = response.data.id_extra;
+					}
+					
 					
 					//SOLICITAR DESPACHOS NUEVOS (para eso necesito el ultimo despacho recibido)
-					axios.post('/api/get-despachos-web', {piso_venta_id: this.id, ultimo_despacho: ultimoDespacho}).then(response => {//DEL LADO DE LA WEB
+					axios.post('http://127.0.0.1:8000/api/get-despachos-web', {piso_venta_id: this.id, ultimo_despacho: ultimoDespacho}).then(response => {//DEL LADO DE LA WEB
 
 						nuevosDespachos = response.data;
 						console.log(nuevosDespachos)
@@ -199,13 +205,13 @@
 								console.log(e.response)
 							});
 
-						}
+						}else{
 
 						this.alert_success = true;
 						this.alert_message = "No hay despachos para sincronizar"
-
+						}
 						//PEDIR DE LA WEB LOS DESPACHOS QUE NO ESTAN CONFIRMADOS
-						axios.get('/api/get-despachos-sin-confirmacion/'+this.id).then(response => {//DEL LADO DE LA WEB
+						axios.get('http://127.0.0.1:8000/api/get-despachos-sin-confirmacion/'+this.id).then(response => {//DEL LADO DE LA WEB
 							
 						despachosSinConfirmar = response.data;
 						//console.log(response.data);
@@ -216,11 +222,11 @@
 								despachosConfirmados = response.data
 								//console.log(response.data);
 								//GUARDAR LOS DATOS ANTERIORES EN LA WEB
-								axios.post('/api/actualizar-confirmados', {despachos: despachosConfirmados, piso_venta_id: this.id}).then(response => {//DEL LADO DE LA WEB PARA ACTUALIZAR LAS CONFIRMACIONES
+								axios.post('http://127.0.0.1:8000/api/actualizar-confirmados', {despachos: despachosConfirmados, piso_venta_id: this.id}).then(response => {//DEL LADO DE LA WEB PARA ACTUALIZAR LAS CONFIRMACIONES
 						
 								console.log(response);
 								this.alert_success = true;
-								//this.alert_message += " nuevos datos confirmados"
+								this.alert_message += " nuevos datos confirmados"
 								}).catch(e => {
 									console.log(e.response)
 								});
@@ -241,6 +247,21 @@
 				}).catch(e => {
 					console.log(e.response);
 				})
+
+				//SICRONIZACION
+				axios.post('/api/sincronizacion', {id: this.id}).then(response => {
+					console.log(response);
+
+					axios.post('/api/sincronizacion', {id: this.id}).then(response => {//WEB
+						console.log(response);
+
+					}).catch(e => {
+						console.log(e.response);
+					});
+
+				}).catch(e => {
+					console.log(e.response);
+				});
 
 			},
 			sinconfirmacion(){

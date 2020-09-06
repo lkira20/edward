@@ -18,11 +18,27 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    
+    <style type="text/css">
+        html, body{
+          height:100%;
+          margin:0;
+          display: flex;
+          flex-direction: column;
+          /*background-color: #f8fafc !important;*/
+          background-image: url('img/background.jpg');
+          background-position: center;
+          background-size: cover;
+
+        }
+
+        
+    </style>
 </head>
 <body>
-    <div id="app">
-        
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+    <div id="app" style="height: 100%;">
+        <!--
+        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm fixed-top">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
                     Pisos de venta
@@ -41,12 +57,13 @@
                        
                             
                         @guest
+                           
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                <a class="nav-link" href="{{ route('index') }}">{{ __('Inicio') }}</a>
                             </li>
                             @if (Route::has('register'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Registrarme') }}</a>
                                 </li>
                             @endif
                         @else
@@ -72,8 +89,8 @@
                 </div>
             </div>
         </nav>
-        
-        <main class="py-4">
+        -->
+        <main class="py-4" style="height: 100%;">
             @yield('content')
         </main>
     </div>

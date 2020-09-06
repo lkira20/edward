@@ -18,11 +18,16 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <style>
+        body{
+            background-color: #f8f9fa !important;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
         
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
                     Pisos de venta
@@ -38,23 +43,26 @@
                     </ul>
 
                     <ul class="navbar-nav ml-auto">
-                        
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('ventas.index') }}">Ventas</a>
+                            <a class="nav-link" href="{{ route('home') }}">Inicio <font-awesome-icon icon="home"/></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('inventario.index') }}">Inventario</a>
+                            <a class="nav-link" href="{{ route('ventas.index') }}" >Ventas <font-awesome-icon :icon="['fas', 'dollar-sign']"/></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('despachos.index') }}">Despachos</a>
+                            <a class="nav-link" href="{{ route('inventario.index') }}">Inventario <font-awesome-icon :icon="['fas', 'store']"/></a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('despachos.index') }}">Despachos <font-awesome-icon :icon="['fas', 'cart-arrow-down']"/></a>
+                        </li>
+                        <!--
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('despachos.almacen.index') }}">Despachos almacen</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('compras.index') }}">Compras</a>
                         </li>
-                            
+                        -->
                         @guest
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
@@ -67,7 +75,7 @@
                         @else
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }} <span class="caret"></span>
+                                    {{ Auth::user()->name }}  <span class="caret"></span>
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">

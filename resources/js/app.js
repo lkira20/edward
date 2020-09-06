@@ -5,6 +5,7 @@
  */
 
 require('./bootstrap');
+require('./plugins/fontawesome');
 
 window.Vue = require('vue');
 
@@ -25,22 +26,28 @@ Vue.component('ventas', require('./view/Ventas.vue').default);
 Vue.component('despachos', require('./view/Despachos.vue').default);
 Vue.component('despachos-almacen', require('./view/Despachos-almacen.vue').default);
 Vue.component('compras', require('./view/Compras.vue').default);
-
+Vue.component('index', require('./view/Index.vue').default);
+Vue.component('home', require('./view/Home.vue').default);
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 import Vue from 'vue'
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+import { BModal, VBModal, BPagination } from 'bootstrap-vue'
 
+Vue.component('b-modal', BModal)
+// Note that Vue automatically prefixes directive names with `v-`
+Vue.directive('b-modal', VBModal)
+
+Vue.component('b-pagination', BPagination)
 // Install BootstrapVue
-Vue.use(BootstrapVue)
+//Vue.use(BootstrapVue)
 // Optionally install the BootstrapVue icon components plugin
-Vue.use(IconsPlugin)
+//Vue.use(IconsPlugin)
 
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+//import 'bootstrap/dist/css/bootstrap.css'
+//import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 
 const app = new Vue({

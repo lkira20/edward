@@ -10,6 +10,8 @@ use App\Detalle_venta;
 use DB;
 use App\Inventario;
 use App\Precio;
+use App\Piso_venta;
+use Carbon\Carbon;
 
 class VentasController extends Controller
 {
@@ -20,14 +22,24 @@ class VentasController extends Controller
     	return view('ventas.index');
     }
 
-    public function get_ventas()
+    public function get_ventas(Request $request)
     {
     	$usuario = Auth::user()->piso_venta->id;
 
-        $ventas = Venta::with(['detalle'])->where('piso_venta_id', $usuario)->orderBy('id', 'desc')->paginate(1);
+    	if ($request->fecha_i != 0 && $request->fecha_f != 0) {
+    		
+    		$fecha_i = new Carbon($request->fecha_i);
+    		$fecha_f = new Carbon($request->fecha_f);
+
+    		$ventas = Venta::with(['detalle'])->where('piso_venta_id', $usuario)->whereDate('created_at','>=', $fecha_i)->whereDate('created_at','<=', $fecha_f)->orderBy('id', 'desc')->paginate(1);
+    	}else{
+
+    		$ventas = Venta::with(['detalle'])->where('piso_venta_id', $usuario)->orderBy('id', 'desc')->paginate(1);
+    	}
 
         return response()->json($ventas);
     }
+
 
     public function get_datos_create()
     {
@@ -81,6 +93,11 @@ class VentasController extends Controller
 
 	            $inventario->save();
 	        }
+
+	        //SUMAMOS EN EL DINERO GENERADO EN EL PISO DE VENTA
+	        $piso_venta = Piso_venta::where('user_id', $usuario)->first();
+	        $piso_venta->dinero += $venta->total;
+	        $piso_venta->save();
 
 	        DB::commit();
 
@@ -181,7 +198,7 @@ class VentasController extends Controller
 
     public function ventas_sin_registrar($piso_venta, $id)
     {
-    	$ventas = Venta::with('detalle')->where('piso_venta_id', $piso_venta)->where('id_extra', '>', $id)->get();
+    	$ventas = Venta::with('detalle', 'detalle.precio')->where('piso_venta_id', $piso_venta)->where('id_extra', '>', $id)->get();
 
     	return response()->json($ventas);
     }
@@ -208,25 +225,32 @@ class VentasController extends Controller
 		            $detalles = new Detalle_venta();
 		            $detalles->venta_id = $venta->id;
 		            $detalles->cantidad = $producto['pivot']['cantidad'];
-		            $detalles->inventario_id = $producto['pivot']['inventario_id'];
+		            //BUSCAMOS EL ID QUE TIENE INVENTARIO EN LA WEB CON EL PRODUCTO
+		            if ($producto['inventory_id'] !== null) {
+		           		$articulo = Inventario::select('id')->where('inventory_id', $producto['inventory_id'])->orderBy('id', 'desc')->first();
+		            	$detalles->inventario_id = $articulo->id;
+		            }else{
+
+		            	$articulo = new Inventario();
+                        $articulo->name = $producto['name'];
+                        $articulo->unit_type_mayor = $producto['unit_type_mayor'];
+                        $articulo->unit_type_menor = $producto['unit_type_menor'];
+                        $articulo->save();
+                        $detalles->inventario_id = $articulo->id;
+		            }
+		            
 		            $detalles->sub_total = $producto['pivot']['sub_total'];
 			        $detalles->iva = $producto['pivot']['iva'];
 			        $detalles->total = $producto['pivot']['total'];
 		            $detalles->save();
 
 		            //RESTAMOS DEL STOCK
-		            $inventario = Inventario_piso_venta::where('piso_venta_id', $request->piso_venta_id)->whereHas('inventario', function($q){
-		            	$q->where('inventory_id', $producto['inventory_id']);
+		            $inventario = Inventario_piso_venta::where('piso_venta_id', $request->piso_venta_id)->where('inventario_id', $articulo->id)->whereHas('inventario', function($q){
+		            	//$q->where('inventory_id', $producto['inventory_id']);
 		            })->orderBy('id', 'desc')->first();
 		            //SI NO ENCUENTRA EL PRODUCTO QUE LO REGISTRE
 		            
 		            if ($inventario->id == null) {
-                        $articulo = new Inventario();
-                        $articulo->name = $producto['name'];
-                        $articulo->unit_type_mayor = $producto['unit_type_mayor'];
-                        $articulo->unit_type_menor = $producto['unit_type_menor'];
-                        $articulo->inventory_id = $producto['inventory_id'];
-                        $articulo->save();
                         //REGISTRA LA CANTIDAD EN EL INVENTARIO DEL PISO DE VENTA
                         $inventario = new Inventario_piso_venta();
                         $inventario->inventario_id = $articulo->id;
@@ -236,14 +260,14 @@ class VentasController extends Controller
                     }else{
 					
                     //SI ES UNA VENTA O UNA COMPRA
-                    if ($venta->type == 1) {
+	                    if ($venta->type == 1) {
 
-                    	$resta = $inventario->cantidad -= $producto['pivot']['cantidad'];
-                    }else{
-                    	$resta = $inventario->cantidad += $producto['pivot']['cantidad'];
-                    }
-		            	
-		            //}
+	                    	$inventario->cantidad -= $producto['pivot']['cantidad'];
+	                    }else if ($venta->type == 2){
+	                    	$inventario->cantidad += $producto['pivot']['cantidad'];
+	                    }
+		            }	
+		            //
 		            //VALICACION POR SI NO HAY SUFICIENTES PRODUCTOS
 		            /*
 		            if ($resta < 0) {

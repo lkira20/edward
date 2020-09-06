@@ -12,8 +12,8 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('index');
+})->name('index');
 //INVENTARIO
 Route::get('/inventario', 'InventarioController@index')->name('inventario.index');
 //VENTAS
@@ -39,7 +39,9 @@ Route::get('/prueba', 'InventarioController@prueba');
 //RUTAS APIS
 Route::prefix('api')->group(function(){
 	//USUARIO
-	Route::get('/get-id', 'UsersController@get_id');	
+	Route::get('/get-id', 'UsersController@get_id');
+	Route::get('/get-piso-venta', 'UsersController@get_piso_venta');
+	Route::post('/vaciar-caja', 'UsersController@vaciar_caja');	
 	//INVENTARIO
 	Route::get('/get-inventario', 'InventarioController@get_inventario');
 	Route::get('/ultimo-inventory', 'InventarioController@ultimo_inventory');
@@ -73,9 +75,22 @@ Route::prefix('api')->group(function(){
 	Route::get('/ventas-datos-create', 'VentasController@get_datos_create');
 	Route::post('/ventas', 'VentasController@store');
 	Route::post('/ventas-comprar', 'VentasController@store_compra');
+	//SINCRONIZACION
+	Route::get('/ultima-sincronizacion/{id}', 'SincronizacionController@ultimo');
+	Route::post('/sincronizacion', 'SincronizacionController@store')->name('sincronizacion.store');
 	//VENTA REFRESCAR
 	Route::get('/get-piso-venta-id', 'VentasController@get_piso_venta_id');
 	Route::get('/ultima-venta/{piso_venta}', 'VentasController@ultima_venta');//WEB
 	Route::get('/ventas-sin-registrar/{piso_venta}/{id}', 'VentasController@ventas_sin_registrar');
 	Route::post('/registrar-ventas', 'VentasController@registrar_ventas');//WEB
+
+	//RESUMEN
+	Route::get('/get-piso-ventas', 'PisoVentasController@get_piso_ventas');
+	Route::get('/resumen', 'PisoVentasController@resumen');
+	Route::get('/ventas-compras', 'PisoVentasController@ventas_compras');
+	Route::get('/despachos-retiros/{id}', 'PisoVentasController@despachos_retiros');
+	Route::get('/productos-piso-venta/{id}', 'PisoVentasController@productos_piso_venta');
+
+	//CAJA REFRESCAR
+	Route::get('ultima-vaciada-caja-local/{id}', 'PisoVentasController@ultima_vaciada_caja_local');
 });

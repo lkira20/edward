@@ -25,7 +25,7 @@ class InventarioController extends Controller
     	return view('inventario.index');
     }
 
-    public function get_inventario()
+    public function get_inventario(Request $request)
     {
         $usuario = Auth::user()->piso_venta->id;
 
@@ -33,9 +33,14 @@ class InventarioController extends Controller
         //    $inventario->where('name', 'quo');
         //}])->where('piso_venta_id', $usuario)->whereHas('inventario')->get();
 
-        $inventario  = Inventario_piso_venta::with('inventario.precio')->where('piso_venta_id', $usuario)->whereHas('inventario', function($q){
+        $inventario  = Inventario_piso_venta::with('inventario.precio')->where('piso_venta_id', $usuario)->whereHas('inventario', function($q)use($request){
            // $q->where('name', 'quo');
-        })->paginate(1);
+            if ($request->search != null) {
+                
+                $q->where('name', 'like', '%'.$request->search.'%');
+            }
+
+        })->orderBy('cantidad', 'desc')->paginate(1);
         return response()->json($inventario);
     }
 
@@ -47,7 +52,7 @@ class InventarioController extends Controller
         return response()->json($inventory->id);
     }
 
-    public function get_inventory($id)
+    public function get_inventory($id)//WEB
     {
 
         $inventory = Inventory::with('product')->where('id', '>', $id)->get();
@@ -105,7 +110,7 @@ class InventarioController extends Controller
         
     }
 
-    public function get_precios_inventory()
+    public function get_precios_inventory()//WEB
     {
         $inventory = Inventory::with('product')->where('status', 1)->whereHas('product', function($q){ $q->where('id', '!=', null);})->get();
 

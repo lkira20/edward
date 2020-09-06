@@ -17,6 +17,7 @@ class CreateVaciarCajasTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('piso_venta_id');
             $table->decimal('monto', 10, 2);
+            $table->bigInteger('id_extra')->nullable();
             $table->timestamps();
 
             $table->foreign('piso_venta_id')->references('id')->on('piso_ventas');

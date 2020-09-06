@@ -24,13 +24,13 @@
 		    <b-alert show variant="success" fade dismissible v-if="alert_success == true">{{alert_message}}</b-alert>
 		   <!---->
 
-			<div class="card">
+			<div class="card shadow">
 				<div class="card-body">
 					<h1 class="text-center">Ventas y compras</h1>
 					<div class="mb-3">
 						<div class="row justify-content-between">
 							<div class="col-12 col-md-2">			
-								<button class="btn btn-primary" @click="refrescar">Sincronizar</button>
+								<!--<button class="btn btn-primary" @click="refrescar">Sincronizar</button>-->
 							</div>
 
 							<div class="col-12 col-md-4">
@@ -41,6 +41,14 @@
 						</div>
 					</div>
 					
+					<div class="text-right my-3">
+						<form action="" method="get" @submit.prevent="filtrar">
+							<input type="date" v-model="fecha_inicial">
+							<input type="date" v-model="fecha_final" >
+							<button type="submit" class="btn btn-primary">Filtrar</button>
+						</form>
+
+					</div>
 					<table class="table table-bordered">
 						<thead>
 							<tr>
@@ -62,7 +70,7 @@
 								<td>{{venta.total}}</td>
 								<td>
 									<button type="button" class="btn btn-primary" @click="showModalDetalles(venta.id)">Ver</button>
-									<button class="btn btn-danger">Eliminar</button>
+									<!--<button class="btn btn-danger">Eliminar</button>-->
 								</td>
 
 
@@ -118,6 +126,10 @@
 								</b-modal>
 
 							</tr>
+
+							<tr v-if="ventas == []">
+								<td class="text-center">No hay ventas registradas</td>
+							</tr>
 						</tbody>
 					</table>
 
@@ -153,7 +165,7 @@
 
 									<div class="form-group col-md-3">
 										<label class="text-center" for="">Acción:</label><br>
-										<button class="btn btn-primary btn-block" type="button" @click="agregar_producto()">Agregar</button>
+										<button class="btn btn-primary btn-block" type="button" @click="agregar_producto()" :disabled="disabled_venta">Agregar</button>
 									</div>
 								</div>
 							</div>
@@ -206,7 +218,7 @@
 						      		</div>
 				      	
 					      	<div class="modal-footer">
-					        	<button type="submit" class="btn btn-primary" @click="vender">Vender</button>
+					        	<button type="submit" class="btn btn-primary" @click="vender" :disabled="productos.length <= 0">Vender</button>
 					      	</div>
 				      	</form>
 
@@ -307,7 +319,7 @@
 												<div class="form-group">
 													<label for="subtotal-menor">Sub total:</label>
 												    <input type="number" class="form-control" id="subtotal-menor" placeholder="300000" v-model.number="articulo_compra.sub_total" disabled>
-												    <span class="">{{sub_total_comprar}}</span>
+												    <!--<span class="">{{sub_total_comprar}}</span>-->
 												</div>
 											</div>
 
@@ -315,7 +327,7 @@
 												<div class="form-group">
 													<label for="iva">Iva:</label>
 												    <input type="number" class="form-control" id="iva" placeholder="50000" v-model.number="articulo_compra.iva" disabled>
-												    <span class="">{{iva_total_comprar}}</span>
+												    <!--<span class="">{{iva_total_comprar}}</span>-->
 												</div>
 											</div>
 
@@ -323,13 +335,13 @@
 												<div class="form-group">
 													<label for="total">total:</label>
 												    <input type="number" class="form-control" id="total" placeholder="350000" v-model.number="articulo_compra.total" disabled>
-												    <span class="">{{total_comprar}}</span>
+												    <!--<span class="">{{total_comprar}}</span>-->
 												</div>
 											</div>
 
 											<div class="col-md-3">
 												<label >Acción:</label>
-												<button type="button" class="btn btn-primary btn-block" @click="agregar_producto('compra')">Agregar</button>
+												<button type="button" class="btn btn-primary btn-block" @click="agregar_producto('compra')" :disabled="disabled_compra">Agregar</button>
 											</div>
 										</div>
 										<!--
@@ -412,7 +424,7 @@
 						      		</div>
 				      	
 					      	<div class="modal-footer">
-					        	<button type="submit" class="btn btn-danger" @click="comprar">Compra</button>
+					        	<button type="submit" class="btn btn-danger" @click="comprar" :disabled="productos_comprar <= 0">Compra</button>
 					      	</div>
 				      	</form>
 
@@ -475,6 +487,8 @@
 		        sub_de_total: 0,
 				iva_de_compra: 0,
 				total_de_compra: 0,
+				fecha_inicial: Date,
+				fecha_final: Date
 			}
 		},
 		methods:{
@@ -626,7 +640,7 @@
 					let piso_venta_id = response.data;
 					//console.log(piso_venta_id)
 					//OBTENEMOS DE LA WEB LA ULTIMA VENTA QUE TIENE REGISTRADA CON NUESTRO PISO DE VENTA
-					axios.get('/api/ultima-venta/'+piso_venta_id).then(response => {//WEB
+					axios.get('http://127.0.0.1:8000/api/ultima-venta/'+piso_venta_id).then(response => {//WEB
 
 						let ultima_venta = response.data.id_extra
 						//console.log(ultima_venta)
@@ -641,7 +655,7 @@
 
 
 							//EN ESE CASO REGISTRAMOS LAS VENTAS EN LA WEB
-							axios.post('/api/registrar-ventas', {ventas: ventas, piso_venta_id: piso_venta_id}).then(response => {
+							axios.post('http://127.0.0.1:8000/api/registrar-ventas', {ventas: ventas, piso_venta_id: piso_venta_id}).then(response => {
 
 								console.log(response.data)
 								if (response.data == true) {
@@ -669,6 +683,21 @@
 				}).catch(e => {
 					console.log(e.response)
 				});
+
+				//SICRONIZACION
+				axios.post('/api/sincronizacion', {id: piso_venta_id}).then(response => {
+					console.log(response);
+
+					axios.post('/api/sincronizacion', {id: piso_venta_id}).then(response => {//WEB
+						console.log(response);
+
+					}).catch(e => {
+						console.log(e.response);
+					});
+
+				}).catch(e => {
+					console.log(e.response);
+				});
 			},
 			showModalCompra(){
 				this.get_datos();
@@ -690,6 +719,19 @@
 				})
 				
 				this.$bvModal.hide("modal-compra")
+			},
+			filtrar(){
+
+				axios.get('/api/get-ventas', {params:{fecha_i: this.fecha_inicial, fecha_f: this.fecha_final}}).then(response => {
+					console.log(response.data.data);
+					this.per_page = response.data.per_page;
+					this.total_paginas = response.data.total;
+					this.ventas = response.data.data
+
+					console.log(this.despachos)
+				}).catch(e => {
+					console.log(e.response)
+				});
 			}
 		},
 		computed:{
@@ -786,6 +828,24 @@
 				this.total_de_compra = total
 
 				return total;
+			},
+			disabled_venta(){
+
+				if (this.articulo.id != 0 && this.articulo.cantidad != ""){
+
+					return false;
+				}else{
+					return true;
+				}
+			},
+			disabled_compra(){
+
+				if (this.articulo_compra.nombre != "" && this.articulo_compra.cantidad != "" && this.articulo_compra.unidad != "" && this.articulo_compra.costo != null && this.articulo_compra.iva_porc != null && this.articulo_compra.margen_ganancia != null){
+
+					return false;
+				}else{
+					return true;
+				}
 			}
 		},
 		created(){
