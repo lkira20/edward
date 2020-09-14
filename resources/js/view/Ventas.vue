@@ -31,11 +31,14 @@
 						<div class="row justify-content-between">
 							<div class="col-12 col-md-2">			
 								<!--<button class="btn btn-primary" @click="refrescar">Sincronizar</button>-->
+								<!--<button type="button" @click="sync_anular" class="btn btn-primary">sync anular</button>-->
 							</div>
 
 							<div class="col-12 col-md-4">
+								<!--
 								<button type="button" class="btn btn-danger" @click="showModalCompra">Compra</button>
 								<button type="button" class="btn btn-primary" @click="showModalNuevo">Venta</button>
+							-->
 							</div>		
 							
 						</div>
@@ -49,28 +52,26 @@
 						</form>
 
 					</div>
-					<table class="table table-bordered">
+					<table class="table table-bordered table-sm table-hover table-striped">
 						<thead>
 							<tr>
 								<th>Factura</th>
+								<th>Fecha</th>
 								<th>tipo</th>
-								<th>Sub Total</th>
-								<th>Iva</th>
 								<th>Total</th>
 								<th>Acciones</th>
 							</tr>
 						</thead>
 						<tbody>
-							<tr v-for="(venta, index) in ventas" :key="index">
+							<tr v-for="(venta, index) in ventas" :key="index" :class="{'bg-danger': venta.anulado == 0 || venta.anulado == 1, 'text-white': venta.anulado == 1 || venta.anulado == 0}">
 								<td>FC-00{{venta.id}}</td>
+								<td>{{venta.created_at}}</td>
 								<td v-if="venta.type == 1">Venta</td>
 								<td v-if="venta.type == 2">Compra</td>
-								<td>{{venta.sub_total}}</td>
-								<td>{{venta.iva}}</td>
 								<td>{{venta.total}}</td>
 								<td>
 									<button type="button" class="btn btn-primary" @click="showModalDetalles(venta.id)">Ver</button>
-									<!--<button class="btn btn-danger">Eliminar</button>-->
+									<button class="btn btn-danger" type="button" @click="showModalAnular(venta.id)" v-if="venta.anulado == null">Anular</button>
 								</td>
 
 
@@ -124,6 +125,28 @@
 						      			
 						      		</div>
 								</b-modal>
+
+								<!--MODAL DE ANULAR FACTURA-->
+
+								<div class="modal fade" :id="'modal-anular-'+venta.id" tabindex="-1" aria-labelledby="modalANular" aria-hidden="true">
+								  	<div class="modal-dialog">
+								    	<div class="modal-content">
+								      		<div class="modal-header">
+								        		<h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+								        		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								          		<span aria-hidden="true">&times;</span>
+								        		</button>
+								      		</div>
+								      		<div class="modal-body">
+								        		¿Esta seguro que desea anular la venta?
+								      		</div>
+								      		<div class="modal-footer">
+								        		<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+								        		<button type="button" class="btn btn-danger" @click="anular(venta.id, index)">Anular</button>
+								      		</div>
+								    	</div>
+								  	</div>
+								</div>
 
 							</tr>
 
@@ -319,7 +342,7 @@
 												<div class="form-group">
 													<label for="subtotal-menor">Sub total:</label>
 												    <input type="number" class="form-control" id="subtotal-menor" placeholder="300000" v-model.number="articulo_compra.sub_total" disabled>
-												    <!--<span class="">{{sub_total_comprar}}</span>-->
+												    <span class="" v-show="false">{{sub_total_comprar}}</span>
 												</div>
 											</div>
 
@@ -327,7 +350,7 @@
 												<div class="form-group">
 													<label for="iva">Iva:</label>
 												    <input type="number" class="form-control" id="iva" placeholder="50000" v-model.number="articulo_compra.iva" disabled>
-												    <!--<span class="">{{iva_total_comprar}}</span>-->
+												    <span class="" v-show="false">{{iva_total_comprar}}</span>
 												</div>
 											</div>
 
@@ -335,7 +358,7 @@
 												<div class="form-group">
 													<label for="total">total:</label>
 												    <input type="number" class="form-control" id="total" placeholder="350000" v-model.number="articulo_compra.total" disabled>
-												    <!--<span class="">{{total_comprar}}</span>-->
+												    <span class="" v-show="false">{{total_comprar}}</span>
 												</div>
 											</div>
 
@@ -487,8 +510,8 @@
 		        sub_de_total: 0,
 				iva_de_compra: 0,
 				total_de_compra: 0,
-				fecha_inicial: Date,
-				fecha_final: Date
+				fecha_inicial: "",
+				fecha_final: ""
 			}
 		},
 		methods:{
@@ -732,6 +755,58 @@
 				}).catch(e => {
 					console.log(e.response)
 				});
+			},
+			showModalAnular(id){
+
+				$('#modal-anular-'+id).modal('show');
+			},
+			anular(id, index){
+
+				axios.put('/api/anular/'+id).then(response => {
+					console.log(response);
+					this.ventas.splice(index, 1, response.data);
+					console.log("anulado")
+				}).catch(e => {
+					console.log(e.response);
+				});
+
+				$('#modal-anular-'+id).modal('hide');
+			},
+			sync_anular(){
+
+				//OBTENEMOS MI ID DE PISO DE VENTA
+				axios.get('/api/get-piso-venta-id').then(response => {
+
+					let piso_venta_id = response.data;
+					//OBTENEMOS LOS PRODCUTOS QUE HALLAN SIDO ANULADOS
+					axios.get('/api/get-ventas-anuladas').then(response => {
+
+						let ventas = response.data;
+						if (ventas.length > 0) {
+							//ACTUALIZAMOS LOS ANULADOS EN LA WEB
+							axios.post('http://127.0.0.1:8000/api/actualizar-anulados', {ventas: ventas, piso_venta: piso_venta_id}).then(response => {//WEB
+
+								console.log(response);
+								//VOLVEMOS A ACTUALIZAR EN LOCAL
+								axios.post('/api/actualizar-anulados-local', {ventas: ventas, piso_venta: piso_venta_id}).then(response => {
+
+									console.log(response);
+
+								}).catch(e => {
+									console.log(e.response);
+								});
+
+							}).catch(e => {
+								console.log(e.response);
+							});
+						}
+					}).catch(e => {
+						console.log(e.response);
+					})
+
+				}).catch(e => {
+						console.log(e.response);
+					})	
 			}
 		},
 		computed:{

@@ -22,6 +22,18 @@ class VentasController extends Controller
     	return view('ventas.index');
     }
 
+    public function create()
+    {
+
+    	return view('ventas.create');
+    }
+
+    public function create_compra()
+    {
+
+    	return view('ventas.create_compra');
+    }
+
     public function get_ventas(Request $request)
     {
     	$usuario = Auth::user()->piso_venta->id;
@@ -180,6 +192,60 @@ class VentasController extends Controller
 			return response()->json($e);
 		}
     }
+
+    public function anular($id)
+    {
+    	try{
+
+			DB::beginTransaction();
+
+	    	$usuario = Auth::user()->piso_venta->id;
+
+	    	$venta = Venta::with('detalle')->findOrFail($id);
+
+	    	$venta->anulado = 0;
+	    	$venta->save();
+
+	    	$piso_venta = Piso_venta::where('user_id', $usuario)->orderBy('id', 'desc')->first();
+	    	//RESTAMOS O SUMAMOS DEL DINERO QUE POSEE EL PISO DE VENTA
+	    	if ($venta->type == 1) {
+
+	    	$piso_venta->dinero -= $venta->total;
+
+	    	}else if($venta->type == 2){
+
+	    	$piso_venta->dinero += $venta->total;
+	    	}
+
+	    	foreach($venta->detalle as $producto){
+
+	    		$inventario = Inventario_piso_venta::where('piso_venta_id', $usuario)->where('inventario_id', $producto->id)->orderBy('id', 'desc')->first();
+	    		
+		    	if ($venta->type == 1) {
+
+		    	$inventario->cantidad += $producto->pivot->cantidad;
+
+		    	}else if($venta->type == 2){
+
+		    	$inventario->cantidad -= $producto->pivot->cantidad;
+
+		    	}
+
+		    	$inventario->save();
+		    	
+		    }
+
+		    DB::commit();
+
+	    	return response()->json($venta);
+
+	    }catch(Exception $e){
+
+			DB::rollback();
+			return response()->json($e);
+		}
+    }
+
     //APARTIR DE AQUI ES EL REFRESCAR
     public function get_piso_venta_id()
     {
@@ -282,14 +348,68 @@ class VentasController extends Controller
 		        }
 			}
 
-		        DB::commit();
+	        DB::commit();
 
-		        return response()->json(true);
+	        return response()->json(true);
 	    	
 		}catch(Exception $e){
 
 			DB::rollback();
 			return response()->json($e);
 		}
+    }
+
+    public function get_ventas_anuladas()
+    {
+    	$usuario = Auth::user()->piso_venta->id;
+
+    	$ventas = Venta::where('anulado', 0)->where('piso_venta_id', $usuario)->get();
+
+    	return response()->json($ventas);
+    }
+
+    public function actualizar_anulados(Request $request)//WEB
+    {
+    	foreach ($request->ventas as $venta) {
+    		
+    		$web = Venta::where('id_extra', $venta['id_extra'])->where('piso_venta_id', $request->piso_venta)->orderBy('id', 'desc')->first();
+    		$web->anulado = 1;
+    		$web->save();
+
+    		foreach($web->detalle as $producto){
+
+	    		$inventario = Inventario_piso_venta::where('piso_venta_id', $request->piso_venta)->where('inventario_id', $producto->id)->orderBy('id', 'desc')->first();
+	    		
+		    	if ($web->type == 1) {
+
+		    	$inventario->cantidad += $producto->pivot->cantidad;
+
+		    	}else if($web->type == 2){
+
+		    	$inventario->cantidad -= $producto->pivot->cantidad;
+
+		    	}
+
+		    	$inventario->save();
+		    	
+		    }
+    	}
+
+    	return response()->json(true);
+    }
+
+    public function actualizar_anulados_local()
+    {
+    	$usuario = Auth::user()->piso_venta->id;
+
+    	$ventas = Venta::with('detalle')->where('anulado', 0)->where('piso_venta_id', $usuario)->get();
+
+    	foreach ($ventas as $venta) {
+    		
+    		$venta->anulado = 1;
+    		$venta->save();
+    	}
+
+    	return response()->json(true);
     }
 }

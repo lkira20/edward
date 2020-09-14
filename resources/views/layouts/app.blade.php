@@ -46,9 +46,30 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('home') }}">Inicio <font-awesome-icon icon="home"/></a>
                         </li>
+                        <!--
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('ventas.index') }}" >Ventas <font-awesome-icon :icon="['fas', 'dollar-sign']"/></a>
+                            <a class="nav-link" href="{{ route('ventas.index') }}" >Ventas </a>
                         </li>
+                        -->
+
+                        <li class="nav-item dropdown">
+                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                Ventas<span class="caret"></span>
+                            </a>
+
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="{{ route('ventas.index') }}">
+                                Lista
+                                </a>
+                                <a class="dropdown-item" href="{{ route('ventas.create') }}">
+                                Nueva venta
+                                </a>
+                                <a class="dropdown-item" href="{{ route('ventas.create.compra') }}">
+                                Nueva Compra
+                                </a>
+                            </div>
+                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('inventario.index') }}">Inventario <font-awesome-icon :icon="['fas', 'store']"/></a>
                         </li>
@@ -82,7 +103,7 @@
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
+                                        {{ __('Cerrar sessión') }}
                                     </a>
 
                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">

@@ -24,7 +24,7 @@
 					
 					</div>		 
 
-					<table class="table table-bordered">
+					<table class="table table-bordered table-sm table-hover table-striped">
 						<thead>
 							<tr>
 								<th rowspan="">Producto</th>

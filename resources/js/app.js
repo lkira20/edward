@@ -28,21 +28,27 @@ Vue.component('despachos-almacen', require('./view/Despachos-almacen.vue').defau
 Vue.component('compras', require('./view/Compras.vue').default);
 Vue.component('index', require('./view/Index.vue').default);
 Vue.component('home', require('./view/Home.vue').default);
+
+Vue.component('venta-create', require('./view/VentaCreate.vue').default);
+Vue.component('compra-create', require('./view/CompraCreate.vue').default);
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 import Vue from 'vue'
-import { BModal, VBModal, BPagination } from 'bootstrap-vue'
+import {ModalPlugin, PaginationPlugin, AlertPlugin } from 'bootstrap-vue'
 
-Vue.component('b-modal', BModal)
+//Vue.component('b-modal', BModal)
 // Note that Vue automatically prefixes directive names with `v-`
-Vue.directive('b-modal', VBModal)
+//Vue.directive('b-modal', VBModal)
 
-Vue.component('b-pagination', BPagination)
+//Vue.component('b-pagination', BPagination)
 // Install BootstrapVue
 //Vue.use(BootstrapVue)
+Vue.use(ModalPlugin)
+Vue.use(PaginationPlugin)
+Vue.use(AlertPlugin)
 // Optionally install the BootstrapVue icon components plugin
 //Vue.use(IconsPlugin)
 

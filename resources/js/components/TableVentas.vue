@@ -10,13 +10,12 @@
 
 		</div>
 
-		<table class="table table-bordered">
+		<table class="table table-bordered table-sm table-hover table-striped">
 			<thead>
 				<tr>
 					<th>Factura</th>
+					<th>Fecha</th>
 					<th>tipo</th>
-					<th>Sub Total</th>
-					<th>Iva</th>
 					<th>Total</th>
 					<th>Acciones</th>
 				</tr>
@@ -24,10 +23,9 @@
 			<tbody v-show="ventas != []">
 				<tr v-for="(venta, index) in ventas" :key="index">
 					<td>FC-00{{venta.id_extra}}</td>
+					<td>{{venta.created_at}}</td>
 					<td v-if="venta.type == 1">Venta</td>
 					<td v-if="venta.type == 2">Compra</td>
-					<td>{{venta.sub_total}}</td>
-					<td>{{venta.iva}}</td>
 					<td>{{venta.total}}</td>
 					<td>
 						<button type="button" class="btn btn-primary" @click="showModalDetalles(venta.id)">Ver</button>

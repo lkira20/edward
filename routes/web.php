@@ -18,6 +18,8 @@ Route::get('/', function () {
 Route::get('/inventario', 'InventarioController@index')->name('inventario.index');
 //VENTAS
 Route::get('/ventas', 'VentasController@index')->name('ventas.index');
+Route::get('/ventas/create', 'VentasController@create')->name('ventas.create');
+Route::get('/ventas/create-compra', 'VentasController@create_compra')->name('ventas.create.compra');
 //DESPACHOS
 Route::get('/despachos', 'DespachosController@index')->name('despachos.index');
 //COMPRAS
@@ -75,6 +77,7 @@ Route::prefix('api')->group(function(){
 	Route::get('/ventas-datos-create', 'VentasController@get_datos_create');
 	Route::post('/ventas', 'VentasController@store');
 	Route::post('/ventas-comprar', 'VentasController@store_compra');
+	Route::put('/anular/{id}', 'VentasController@anular');
 	//SINCRONIZACION
 	Route::get('/ultima-sincronizacion/{id}', 'SincronizacionController@ultimo');
 	Route::post('/sincronizacion', 'SincronizacionController@store')->name('sincronizacion.store');
@@ -83,6 +86,10 @@ Route::prefix('api')->group(function(){
 	Route::get('/ultima-venta/{piso_venta}', 'VentasController@ultima_venta');//WEB
 	Route::get('/ventas-sin-registrar/{piso_venta}/{id}', 'VentasController@ventas_sin_registrar');
 	Route::post('/registrar-ventas', 'VentasController@registrar_ventas');//WEB
+
+	Route::get('/get-ventas-anuladas', 'VentasController@get_ventas_anuladas');
+	Route::post('/actualizar-anulados', 'VentasController@actualizar_anulados');//WEB
+	Route::post('/actualizar-anulados-local', 'VentasController@actualizar_anulados_local');
 
 	//RESUMEN
 	Route::get('/get-piso-ventas', 'PisoVentasController@get_piso_ventas');

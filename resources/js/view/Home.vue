@@ -25,8 +25,8 @@
 							</button>
 							<button class="btn btn-primary btn-block" @click="sincronizar">
 							
-							<span v-if="loading === false">Sincronizar</span>
-							<div class="spinner-border text-light text-center" role="status" v-if="loading === true">
+							<span v-if="loading == false">Sincronizar</span>
+							<div class="spinner-border text-light text-center" role="status" v-if="loading == true">
 							  	<span class="sr-only">Loading...</span>
 							</div>
 							</button>
@@ -146,6 +146,7 @@
 		        	ventas: false,
 		        	monto: false,
 		        	vaciar_caja: false,
+		        	anulados: false,
 		        	sincronizacion: false
 		        },
 		        loading: false
@@ -206,6 +207,8 @@
 		        }
 
 		        this.error = false;
+
+		        this.loading = false;
 
 				this.cambiar()
 				
@@ -404,6 +407,7 @@
 									
 									//SINC
 									this.sincron.ventas = true;
+									this.sync_anulados();
 								}else{
 									
 									//this.showAlert();
@@ -417,6 +421,7 @@
 								
 								//SINC
 								this.sincron.ventas = true;
+								this.sync_anulados();
 							}
 						}).catch(e => {
 							console.log(e.response)
@@ -494,6 +499,8 @@
 					this.cambiar()
 				});
 
+				
+
 				//SICRONIZACION
 				axios.post('/api/sincronizacion', {id: this.id}).then(response => {
 					console.log(response);
@@ -562,6 +569,42 @@
 			cambiar(){
 				console.log("btn cambio")
 				this.loading = !this.loading;
+			},
+			sync_anulados(){
+				console.log("desde el metodo anulado")
+				let ventas = [];
+				//ANULADOS
+				//OBTENEMOS LOS PRODCUTOS QUE HALLAN SIDO ANULADOS
+				axios.get('/api/get-ventas-anuladas').then(response => {
+					console.log(response)
+					let ventas = response.data;
+					console.log(ventas.length)
+					if (ventas.length > 0) {
+						//ACTUALIZAMOS LOS ANULADOS EN LA WEB
+						axios.post('http://127.0.0.1:8000/api/actualizar-anulados', {ventas: ventas, piso_venta: this.id}).then(response => {//WEB
+
+							console.log(response);
+							//VOLVEMOS A ACTUALIZAR EN LOCAL
+							axios.post('/api/actualizar-anulados-local').then(response => {
+								//SINC
+								this.sincron.anulados = true
+								console.log(response)
+								
+								
+							}).catch(e => {
+								console.log(e.response);
+							});
+
+						}).catch(e => {
+							console.log(e.response);
+						});
+					}else{
+						//SINC
+						this.sincron.anulados = true;
+					}
+				}).catch(e => {
+					console.log(e.response);
+				})
 			}
 		},
 		computed:{
@@ -569,11 +612,9 @@
 
 				if (this.sincron.precios == true && this.sincron.despachos == true && this.sincron.ventas == true && this.sincron.monto == true && this.sincron.vaciar_caja == true && this.sincron.sincronizacion == true) {
 					this.cambiar()
+					console.log("el valor de sincron anulados es "+ this.sincron.anulados)
 					return  true;
 
-				}else{
-
-					return false;
 				}
 		
 			}
