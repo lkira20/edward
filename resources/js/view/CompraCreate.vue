@@ -2,15 +2,26 @@
 	<div class="container">
 		<div class="card shadow">
 			<div class="card-body">
+
+				<h1 class="text-center">Nueva compra:</h1>
+
+				<select name="metodo" id="metodo" class="form-control" v-model="metodo">
+					<option value="">Seleecione el modo de establecer el producto</option>
+					<option value="1">Producto ya existente</option>
+					<option value="2">Registrar producto</option>				
+				</select>
+				{{articulo_compra}}
 				<div >
-					<!--
-					<div class="form-row">
+					<hr>
+					<div class="form-row" v-if="metodo == 1">
+						
 						<div class="form-group col-md-4">
 							<label for="producto">Producto:</label>
 						    <select class="form-control" v-model="articulo_compra.id" @change="establecer_nombre(articulo_compra.id, 'compra')">
 							  <option value="0">Seleecion producto</option>
 							  <option v-for="(prod, index) in inventario_compra" :key="index" :value="prod.inventario.id">{{prod.inventario.name}}</option>
 							</select>
+							
 						</div>
 
 						<div class="form-group col-md-4">
@@ -23,11 +34,11 @@
 							<button class="btn btn-primary btn-block" type="button" @click="agregar_producto('compra')">Agregar</button>
 						</div>
 					</div>
-					-->
+					
 					<!---->
 
-					<div >
-						<h1 class="text-center">Nueva compra:</h1>
+					<div v-if="metodo == 2">
+						
 						<hr>
 						<div class="row">
 							<div class="col-md-4">
@@ -69,6 +80,7 @@
 						</div>
 
 						<div class="row">
+							<!--
 							<div class="col-md-4">
 								<div class="form-group">
 									<label for="costo">Costo:</label>
@@ -89,32 +101,38 @@
 								    <input type="number" class="form-control" id="iva-porc" placeholder="8" v-model.number="articulo_compra.iva_porc">
 								</div>
 							</div>
-
+							-->
 							<div class="col-md-3">
+								<!--
 								<div class="form-group">
 									<label for="subtotal-menor">Sub total:</label>
 								    <input type="number" class="form-control" id="subtotal-menor" placeholder="300000" v-model.number="articulo_compra.sub_total" disabled>
 								    <span class="" v-show="false">{{sub_total_comprar}}</span>
 								</div>
+								-->
 							</div>
 
 							<div class="col-md-3">
+								<!--
 								<div class="form-group">
 									<label for="iva">Iva:</label>
 								    <input type="number" class="form-control" id="iva" placeholder="50000" v-model.number="articulo_compra.iva" disabled>
 								    <span class="" v-show="false">{{iva_total_comprar}}</span>
 								</div>
+							-->
 							</div>
 
 							<div class="col-md-3">
+								<!--
 								<div class="form-group">
 									<label for="total">total:</label>
 								    <input type="number" class="form-control" id="total" placeholder="350000" v-model.number="articulo_compra.total" disabled>
 								    <span class="" v-show="false">{{total_comprar}}</span>
 								</div>
+							-->	
 							</div>
-
-							<div class="col-md-3">
+							
+							<div class="col-md-3 mb-3">
 								<label >Acción:</label>
 								<button type="button" class="btn btn-primary btn-block" @click="agregar_producto('compra')" :disabled="disabled_compra">Agregar</button>
 							</div>
@@ -156,9 +174,11 @@
 						<tr>
 							<th>Producto</th>
 							<th>cantidad</th>
+							<!--
 							<th>Sub total</th>
 							<th>Iva</th>
 							<th>Total</th>
+							-->
 							<th>Acciones</th>
 						</tr>
 					</thead>
@@ -166,9 +186,11 @@
 						<tr v-for="(produc_enviar, index) in productos_comprar" :key="index">
 							<td>{{produc_enviar.nombre}}</td>
 							<td>{{produc_enviar.cantidad}}</td>
+							<!--
 							<td>{{produc_enviar.sub_total}}</td>
 							<td>{{produc_enviar.iva}}</td>
 							<td>{{produc_enviar.total}}</td>
+							!-->
 							<td>
 								<button class="btn btn-danger" type="button" @click="eliminar(index, 'comprar')">Eliminar</button>
 							</td>
@@ -212,6 +234,7 @@
 		data(){
 			return{
 				articulo_compra: {
+					id: 0,
 					nombre: "",
 					cantidad: "",
 					unidad: "",
@@ -226,7 +249,9 @@
 					total_unitario: null,
 		        },
 		        productos_comprar: [],
-		 
+		 		inventario: [],
+		 		inventario_compra: [],
+		 		metodo: ""
 			}
 		},
 		methods:{
@@ -293,6 +318,33 @@
 				}).catch(e => {
 
 				});
+			},
+			establecer_nombre(id, compra){//COLOCAR EL NOMBRE AL PRODUCTO QUE ESTOY AGREGANDO
+				if (compra == "compra") {
+
+					let resultado = this.inventario_compra.find(element => element.inventario.id == id)
+					this.articulo_compra.nombre = resultado.inventario.name;
+					
+					this.articulo_compra.sub_total = resultado.inventario.precio.sub_total_menor
+					this.articulo_compra.iva = resultado.inventario.precio.iva_menor
+					this.articulo_compra.total = resultado.inventario.precio.total_menor
+
+					
+					console.log(this.articulo_compra);
+				}else{
+
+					let resultado = this.inventario.find(element => element.inventario.id == id)
+					this.articulo.nombre = resultado.inventario.name;
+					
+					this.articulo.sub_total = resultado.inventario.precio.sub_total_menor
+					this.articulo.iva = resultado.inventario.precio.iva_menor
+					this.articulo.total = resultado.inventario.precio.total_menor
+					
+					this.cantidad_disponible = resultado.cantidad;
+					
+					console.log(this.articulo);
+				}
+
 			}
 
 		},
@@ -356,8 +408,15 @@
 				return total;
 			},
 			disabled_compra(){
-
+				/*
 				if (this.articulo_compra.nombre != "" && this.articulo_compra.cantidad != "" && this.articulo_compra.unidad != "" && this.articulo_compra.costo != null && this.articulo_compra.iva_porc != null && this.articulo_compra.margen_ganancia != null){
+
+					return false;
+				}else{
+					return true;
+				}
+				*/
+				if (this.articulo_compra.nombre != "" && this.articulo_compra.cantidad != "" && this.articulo_compra.unidad != ""){
 
 					return false;
 				}else{
@@ -367,6 +426,13 @@
 		},
 		created(){
 			this.get_datos();
+		},
+		watch:{
+			metodo: function(val){
+				if (val == 2) {
+					this.articulo_compra.id = 0;
+				}
+			}
 		}
 	}
 </script>

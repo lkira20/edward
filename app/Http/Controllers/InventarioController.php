@@ -142,6 +142,23 @@ class InventarioController extends Controller
                 }
                 
             }
+
+            foreach ($request->precios as $producto) {
+                
+                $inventario = Inventario::select('id')->where('inventory_id', null)->where('id_extra', $producto['id_extra'])->orderBy('id', 'desc')->first();
+
+                if ($inventario['id'] != null) {
+                    $precio = Precio::where('inventario_id', $inventario['id'])->orderBy('id', 'desc')->first();
+                    $precio->costo = $producto['precio']['costo'];
+                    $precio->iva_porc = $producto['precio']['iva_porc'];
+                    $precio->iva_menor = $producto['precio']['iva_menor'];
+                    $precio->sub_total_menor = $producto['precio']['sub_total_menor'];
+                    $precio->total_menor = $producto['precio']['total_menor'];
+                    $precio->save();
+                }
+                
+            }
+
             DB::commit();
 
             return response()->json(true);
@@ -151,6 +168,27 @@ class InventarioController extends Controller
             DB::rollback();
             return response()->json($e);
         }
+    }
+
+    public function get_inventory_id()
+    {
+        $inventario = Inventario::where('inventory_id', null)->get();
+
+        return response()->json($inventario);
+
+    }
+
+    public function actualizar_inventory_id(Request $request)
+    {
+
+        foreach ($request->inventario as $valor) {
+            
+            $inventario = Inventario::where('id_extra', $valor['id_extra'])->orderBy('id', 'desc')->first();
+            $inventario->inventory_id = $valor['inventory_id'];
+            $inventario->save();
+        }
+
+        return response()->json(true);
     }
 
     public function prueba()

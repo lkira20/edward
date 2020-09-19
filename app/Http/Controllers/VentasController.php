@@ -133,9 +133,9 @@ class VentasController extends Controller
 	    	$venta = new Venta();	
 	        $venta->piso_venta_id = $usuario;
 	        $venta->type = 2; // 1 ES VENTA 2 ES COMPRA
-	        $venta->sub_total = $request->venta['sub_total'];
-	        $venta->iva = $request->venta['iva'];
-	        $venta->total = $request->venta['total'];
+	        $venta->sub_total = 0;
+	        $venta->iva = 0;
+	        $venta->total = 0;
 
 	        $venta->save();
 
@@ -143,41 +143,115 @@ class VentasController extends Controller
 	        $venta->save();
 
 	        foreach ($request->productos as $producto) {
-	        	//REGISTRAMOS EL PRODUCTO
-	        	 $articulo = new Inventario();
-                $articulo->name = $producto['nombre'];
-                //$articulo->unit_type_mayor = $producto['unit_type'];
-                $articulo->unit_type_menor = $producto['unidad'];
-                //$articulo->inventory_id = $producto['pivot']['inventory_id'];
-                $articulo->status = 1;
-                $articulo->save();
-                //REGISTRAMOS LOS PRECIOS
-                $precio = new Precio();
-                $precio->costo = $producto['costo'];
-                $precio->iva_porc = $producto['iva_porc'];
-                $precio->iva_menor = $producto['iva_unitario'];
-                $precio->sub_total_menor = $producto['sub_total_unitario'];
-                $precio->total_menor = $producto['total_unitario'];
-                $precio->inventario_id = $articulo->id;
-                $precio->save();
 
+	        	if ($producto['id'] == 0) {
+
+		        	//REGISTRAMOS EL PRODUCTO
+		        	 $articulo = new Inventario();
+	                $articulo->name = $producto['nombre'];
+	                //$articulo->unit_type_mayor = $producto['unit_type'];
+	                $articulo->unit_type_menor = $producto['unidad'];
+	                //$articulo->inventory_id = $producto['pivot']['inventory_id'];
+	                $articulo->status = 1;
+	                $articulo->piso_venta_id = $usuario;
+	                $articulo->save();
+
+	                $articulo->id_extra = $articulo->id;
+	                $articulo->save();
+	                //REGISTRAMOS LOS PRECIOS
+	                $precio = new Precio();
+	                $precio->costo = 0;
+	                $precio->iva_porc = 0;
+	                $precio->iva_menor = 0;
+	                $precio->sub_total_menor = 0;
+	                $precio->total_menor = 0;
+	                $precio->inventario_id = $articulo->id;
+	                $precio->save();
+                }else{
+
+                	$articulo = Inventario::findOrFail($producto['id']);
+                }
 
 	        	//REGISTRAMOS EL PRODUCTO EN LOS DETALLES DE LA VENTA
 	            $detalles = new Detalle_venta();
 	            $detalles->venta_id = $venta->id;
 	            $detalles->cantidad = $producto['cantidad'];
 	            $detalles->inventario_id = $articulo->id;
-	            $detalles->sub_total = $producto['sub_total'];
-		        $detalles->iva = $producto['iva'];
-		        $detalles->total = $producto['total'];
+	            $detalles->sub_total = 0;
+		        $detalles->iva = 0;
+		        $detalles->total = 0;
 	            $detalles->save();
 
 	            //SUMAMOS EL STOCK
-	            $inventario = new Inventario_piso_venta();
-	            $inventario->inventario_id = $articulo->id;
-	            $inventario->piso_venta_id = $usuario;
-	            $inventario->cantidad = $producto['cantidad'];
-	            $inventario->save();
+	            $inventario = Inventario_piso_venta::where('inventario_id', $articulo->id)->where('piso_venta_id', $usuario)->orderBy('id', 'desc')->first();
+
+	            if ($inventario['id'] != null) {
+	            	$inventario->cantidad += $producto['cantidad'];
+	            	$inventario->save();
+	            }else{
+
+		            $inventario = new Inventario_piso_venta();
+		            $inventario->inventario_id = $articulo->id;
+		            $inventario->piso_venta_id = $usuario;
+		            $inventario->cantidad = $producto['cantidad'];
+		            $inventario->save();
+	        	}
+	            //CODIGO VIEJO
+	            /*
+	            DB::beginTransaction();
+		    	$venta = new Venta();	
+		        $venta->piso_venta_id = $usuario;
+		        $venta->type = 2; // 1 ES VENTA 2 ES COMPRA
+		        $venta->sub_total = $request->venta['sub_total'];
+		        $venta->iva = $request->venta['iva'];
+		        $venta->total = $request->venta['total'];
+
+		        $venta->save();
+
+		        $venta->id_extra = $venta->id;
+		        $venta->save();
+
+		        foreach ($request->productos as $producto) {
+		        	//REGISTRAMOS EL PRODUCTO
+		        	 $articulo = new Inventario();
+	                $articulo->name = $producto['nombre'];
+	                //$articulo->unit_type_mayor = $producto['unit_type'];
+	                $articulo->unit_type_menor = $producto['unidad'];
+	                //$articulo->inventory_id = $producto['pivot']['inventory_id'];
+	                $articulo->status = 1;
+	                $articulo->piso_venta_id = $usuario;
+	                $articulo->save();
+
+	                $articulo->id_extra = $articulo->id;
+	                $articulo->save();
+	                //REGISTRAMOS LOS PRECIOS
+	                $precio = new Precio();
+	                $precio->costo = $producto['costo'];
+	                $precio->iva_porc = $producto['iva_porc'];
+	                $precio->iva_menor = $producto['iva_unitario'];
+	                $precio->sub_total_menor = $producto['sub_total_unitario'];
+	                $precio->total_menor = $producto['total_unitario'];
+	                $precio->inventario_id = $articulo->id;
+	                $precio->save();
+
+
+		        	//REGISTRAMOS EL PRODUCTO EN LOS DETALLES DE LA VENTA
+		            $detalles = new Detalle_venta();
+		            $detalles->venta_id = $venta->id;
+		            $detalles->cantidad = $producto['cantidad'];
+		            $detalles->inventario_id = $articulo->id;
+		            $detalles->sub_total = $producto['sub_total'];
+			        $detalles->iva = $producto['iva'];
+			        $detalles->total = $producto['total'];
+		            $detalles->save();
+
+		            //SUMAMOS EL STOCK
+		            $inventario = new Inventario_piso_venta();
+		            $inventario->inventario_id = $articulo->id;
+		            $inventario->piso_venta_id = $usuario;
+		            $inventario->cantidad = $producto['cantidad'];
+		            $inventario->save();
+		        */
 	        }
 
 	        DB::commit();
@@ -301,6 +375,8 @@ class VentasController extends Controller
                         $articulo->name = $producto['name'];
                         $articulo->unit_type_mayor = $producto['unit_type_mayor'];
                         $articulo->unit_type_menor = $producto['unit_type_menor'];
+                        $articulo->piso_venta_id = $request->piso_venta_id;
+                        $articulo->id_extra = $producto['id_extra'];
                         $articulo->save();
                         $detalles->inventario_id = $articulo->id;
 		            }

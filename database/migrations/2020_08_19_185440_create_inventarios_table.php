@@ -23,9 +23,11 @@ class CreateInventariosTable extends Migration
             $table->integer('qty_per_unit')->nullable();
             $table->string('status')->default('2')->nullable();
             $table->integer('total_qty_prod')->nullable();
-            
+            $table->unsignedBigInteger('piso_venta_id');
+            $table->bigInteger('id_extra')->nullable();
             $table->timestamps();
             //$table->foreign('articulo_id')->references('id')->on('articulos');
+            $table->foreign('piso_venta_id')->references('id')->on('piso_ventas');
 
             
         });

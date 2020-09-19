@@ -180,7 +180,10 @@ class DespachosController extends Controller
                         $articulo->unit_type_menor = $producto['unit_type_menor'];
                         $articulo->inventory_id = $producto['pivot']['inventory_id'];
                         $articulo->status = $producto['status'];
+                        $articulo->piso_venta_id = $registro->piso_venta_id;
                         $articulo->save();
+                        //$articulo->id_extra = $articulo->id;
+                        //$articulo->save();
                         //REGISTRAMOS LOS PRECIOS
                         $precio = new Precio();
                         $precio->costo = $producto['product']['cost'];
@@ -324,6 +327,7 @@ class DespachosController extends Controller
                     $articulo->unit_type_menor = $producto['modelo']['unit_type_menor'];
                     $articulo->inventory_id = $producto['id'];
                     $articulo->status = $producto['modelo']['status'];
+                    $articulo->piso_venta_id = $request->piso_venta;
                     $articulo->save();
                     //REGISTRAMOS LOS PRECIOS
                     $precio = new Precio();
@@ -405,6 +409,7 @@ class DespachosController extends Controller
                     $articulo->unit_type_menor = $producto['modelo']['unit_type_menor'];
                     $articulo->inventory_id = $producto['id'];
                     $articulo->status = $producto['modelo']['status'];
+                    $articulo->piso_venta_id = $request->piso_venta;
                     $articulo->save();
                     //REGISTRAMOS LOS PRECIOS
                     $precio = new Precio();

@@ -52,6 +52,9 @@ Route::prefix('api')->group(function(){
 	Route::get('/get-precios-inventory', 'InventarioController@get_precios_inventory');//WEB
 	Route::post('/actualizar-precios-inventory', 'InventarioController@actualizar_precios_inventory');
 
+	//actualizar inventory_id
+	Route::get('/get-inventories-id', 'InventarioController@get_inventory_id');
+	Route::post('/actualizar-inventory-id', 'InventarioController@actualizar_inventory_id');
 
 	//DESPACHOS
 	Route::get('/get-despachos', 'DespachosController@get_despachos');

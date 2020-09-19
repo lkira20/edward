@@ -31,6 +31,7 @@
 							</div>
 							</button>
 							
+							<!--<button class="btn btn-warning btn-block" @click="precios">Precios</button>-->
 					</div>
 				</div>
 			</div>
@@ -153,6 +154,84 @@
 			}
 		},
 		methods:{
+			precios(){//BORRAR
+
+				axios.get('/api/get-inventories-id').then(response => {
+					console.log(response);
+					let inventario = response.data;
+
+					if (inventario.length > 0) {
+					
+						axios.post('http://127.0.0.1:8000/api/get-inventories', {inventario: inventario, piso_venta: this.id}).then(response => {
+
+							console.log(response);
+							let nuevoInventario = response.data;
+
+							axios.post('/api/actualizar-inventory-id', {inventario: nuevoInventario}).then(response => {
+
+								console.log(response);
+								//ACTUALIZAMOS LOS PRECIOS
+
+								axios.get('http://127.0.0.1:8000/api/get-precios-inventory/'+this.id).then(response => {//WEB
+
+									console.log(response)
+									let inventory = response.data.inventory
+									let inventario = response.data.inventario
+
+									axios.post('/api/actualizar-precios-inventory', {productos: inventory, precios: inventario}).then(response => {
+
+										console.log(response.data)
+										//SINC
+										this.sincron.precios = true;
+									}).catch(e => {
+										console.log(e.response)
+										this.error = true;
+										this.cambiar()
+									});
+								}).catch(e => {
+									console.log(e.response)
+									this.error = true;
+									this.cambiar()
+								});
+				
+							}).catch(e => {
+								console.log(e.response)
+							});
+			
+						}).catch(e => {
+							console.log(e.response)
+						});
+					}else{
+						console.log("no hay productos para anclar")
+						//ACTUALIZAMOS LOS PRECIOS
+
+						axios.get('http://127.0.0.1:8000/api/get-precios-inventory/'+this.id).then(response => {//WEB
+
+							console.log(response)
+							let inventory = response.data.inventory
+							let inventario = response.data.inventario
+
+							axios.post('/api/actualizar-precios-inventory', {productos: inventory, precios: inventario}).then(response => {
+
+								console.log(response.data)
+								//SINC
+								this.sincron.precios = true;
+							}).catch(e => {
+								console.log(e.response)
+								this.error = true;
+								this.cambiar()
+							});
+						}).catch(e => {
+							console.log(e.response)
+							this.error = true;
+							this.cambiar()
+						});
+					}
+				}).catch(e => {
+					console.log(e.response)
+				});
+
+			},
 			resumen(){
 
 				axios.get('/api/resumen').then(response => {
@@ -246,26 +325,81 @@
 						}
 
 						//ACTUALIZAMOS LOS PRECIOS
+						//ANCLAR PRODUCTOS A UN INVENTORY_ID
+						//OBTENEMOS DE LOS PISOS TODOS LOS QUE INVENTORY_ID == NUll
+						axios.get('/api/get-inventories-id').then(response => {
+							console.log(response);
+							let inventario = response.data;
 
-						axios.get('http://127.0.0.1:8000/api/get-precios-inventory').then(response => {//WEB
+							if (inventario.length > 0) {
+								//LOS BUSCAMOS EN LA WEB A VER SI SE LE ASIGNO UN INVENTORY_ID
+								axios.post('http://127.0.0.1:8000/api/get-inventories', {inventario: inventario, piso_venta: this.id}).then(response => {
 
-							console.log(response)
-							let articulos = response.data
+									console.log(response);
+									let nuevoInventario = response.data;
+									//ACTUALIZAMOS EN LOCAL LOS INVENTORY_ID
+									axios.post('/api/actualizar-inventory-id', {inventario: nuevoInventario}).then(response => {
 
-							axios.post('/api/actualizar-precios-inventory', {productos: articulos}).then(response => {
+										console.log(response);
+										//ACTUALIZAMOS LOS PRECIOS
 
-								console.log(response.data)
-								//SINC
-								this.sincron.precios = true;
-							}).catch(e => {
-								console.log(e.response)
-								this.error = true;
-								this.cambiar()
-							});
+										axios.get('http://127.0.0.1:8000/api/get-precios-inventory/'+this.id).then(response => {//WEB
+
+											console.log(response)
+											let inventory = response.data.inventory
+											let inventario = response.data.inventario
+
+											axios.post('/api/actualizar-precios-inventory', {productos: inventory, precios: inventario}).then(response => {
+
+												console.log(response.data)
+												//SINC
+												this.sincron.precios = true;
+											}).catch(e => {
+												console.log(e.response)
+												this.error = true;
+												this.cambiar()
+											});
+										}).catch(e => {
+											console.log(e.response)
+											this.error = true;
+											this.cambiar()
+										});
+						
+									}).catch(e => {
+										console.log(e.response)
+									});
+					
+								}).catch(e => {
+									console.log(e.response)
+								});
+							}else{
+								console.log("no hay productos para anclar")
+								//ACTUALIZAMOS LOS PRECIOS
+
+								axios.get('http://127.0.0.1:8000/api/get-precios-inventory/'+this.id).then(response => {//WEB
+
+									console.log(response)
+									let inventory = response.data.inventory
+									let inventario = response.data.inventario
+
+									axios.post('/api/actualizar-precios-inventory', {productos: inventory, precios: inventario}).then(response => {
+
+										console.log(response.data)
+										//SINC
+										this.sincron.precios = true;
+									}).catch(e => {
+										console.log(e.response)
+										this.error = true;
+										this.cambiar()
+									});
+								}).catch(e => {
+									console.log(e.response)
+									this.error = true;
+									this.cambiar()
+								});
+							}
 						}).catch(e => {
 							console.log(e.response)
-							this.error = true;
-							this.cambiar()
 						});
 					}).catch(e => {
 						console.log(e.response)
