@@ -2,27 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Inventario;
-use App\Inventario_piso_venta;
-use App\Piso_venta;
-use App\Venta;
-use App\Detalle_venta;
-use App\Despacho;
-use Illuminate\Support\Facades\Auth;
-use App\Inventory;
-use App\Despacho_detalle;
 use App\Product;
-use App\Precio;
-use DB;
+use App\Codigos;
+use App\Estatu;
 
 class InventarioController extends Controller
 {
     //
     public function index()
     {
+        $estados = Estatu::orderBy('id', 'desc')->paginate();
 
-    	return view('inventario.index');
+    	return view('inventario.index', ['estados' => $estados]);
     }
 
     public function get_inventario(Request $request)

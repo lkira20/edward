@@ -21,7 +21,7 @@ Route::get('/ventas', 'VentasController@index')->name('ventas.index');
 Route::get('/ventas/create', 'VentasController@create')->name('ventas.create');
 Route::get('/ventas/create-compra', 'VentasController@create_compra')->name('ventas.create.compra');
 //DESPACHOS
-Route::get('/despachos', 'DespachosController@index')->name('despachos.index');
+Route::get('/stock', 'DespachosController@index')->name('despachos.index');
 //COMPRAS
 Route::get('/compras', 'ComprasController@index')->name('compras.index');
 //DESPACHOS ALMACEN
@@ -35,9 +35,25 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 
 //RUTA DE PRUEBAS
-Route::get('/prueba', 'InventarioController@prueba');
+Route::post('/store_ingreso', 'EstatusController@store_ingreso')->name('store_ingreso');
+Route::post('/store_venta', 'EstatusController@store_venta')->name('store_venta');
+Route::post('/store_deuda', 'EstatusController@store_deuda')->name('store_deuda');
 
+Route::get('/deudas', 'EstatusController@lista_de_deudas')->name('deudas');
+Route::put('/saldar_deudas', 'EstatusController@saldarDeuda')->name('saldarDeuda');
 
+Route::put('/updateEstado', 'EstatusController@updateEstado')->name('updateEstado');
+Route::delete('/deleteEstado/{id}', 'EstatusController@destroy')->name('deleteEstado');
+//EDWAR
+//PRODUCT
+Route::post('/store_product', 'ProductController@store')->name('store.product')->middleware('auth');
+Route::post('/store_codigo', 'ProductController@store_codigo')->name('store.codigo')->middleware('auth');
+//INVERSIONES
+Route::get('/inversiones', 'InversionController@index')->name('inversion.index');
+Route::post('/store_deuda', 'EstatusController@store_deuda')->name('store_deuda');
+
+//venta
+Route::post('/ventas', 'VentasController@store')->name('venta.store');
 //RUTAS APIS
 Route::prefix('api')->group(function(){
 	//USUARIO
@@ -78,7 +94,7 @@ Route::prefix('api')->group(function(){
 	//VENTAS
 	Route::get('/get-ventas', 'VentasController@get_ventas');
 	Route::get('/ventas-datos-create', 'VentasController@get_datos_create');
-	Route::post('/ventas', 'VentasController@store');
+	
 	Route::post('/ventas-comprar', 'VentasController@store_compra');
 	Route::put('/anular/{id}', 'VentasController@anular');
 	//SINCRONIZACION

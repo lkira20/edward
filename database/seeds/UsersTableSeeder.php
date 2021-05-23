@@ -15,18 +15,18 @@ class UsersTableSeeder extends Seeder
     {
         //
         $usuario = User::create([
-        		'name' => 'usuario-1',
-        		'email' => 'usuario1@gmail.com',
-        		'password' => bcrypt("12345678")	
+        		'name' => 'Edwar',
+        		'email' => 'Monasterioseys2018@gmail.com',
+        		'password' => bcrypt("carla.2020")	
         		]);
-
+        /*
         $piso_Venta = Piso_venta::create([
         					'nombre' => 'mi puchito 1',
         					'ubicacion' => 'centro cagua',
         					'dinero' => 0,
         					'user_id' => $usuario->id
         					]);
-
+        
 
         $usuario = User::create([
         		'name' => 'usuario-2',
@@ -53,5 +53,6 @@ class UsersTableSeeder extends Seeder
         					'dinero' => 0,
         					'user_id' => $usuario->id
         					]);
+        */
     }
 }

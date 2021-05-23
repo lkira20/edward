@@ -12,16 +12,29 @@ use App\Inventario;
 use App\Precio;
 use App\Piso_venta;
 use Carbon\Carbon;
+use App\Product;
+use App\Codigos;
+use App\Estatu;
 
 class VentasController extends Controller
 {
     //
-    public function index()
+    public function index(Request $request)
     {
+    	$productos = Codigos::orderBy('id', 'desc')->get();
 
-    	return view('ventas.index');
+    	$ventas = Venta::orderBy('id', 'desc');
+
+    	if (isset($request->fecha_ini) && isset($request->fecha_fin)) {
+
+    		$ventas = $ventas->whereDate('created_at', '>=', $request->fecha_ini)->whereDate('created_at', '<=', $request->fecha_fin);
+    	}
+
+    	$ventas = $ventas->paginate();
+
+    	return view('ventas.index', ['productos' => $productos, 'ventas' => $ventas]);
     }
-
+    /*
     public function create()
     {
 
@@ -61,61 +74,51 @@ class VentasController extends Controller
 
     	return response()->json($inventario);
     }
-
+	*/
     public function store(Request $request)
     {
-    	$usuario = Auth::user()->piso_venta->id;
     	try{
-
+    		
 			DB::beginTransaction();
-	    	$venta = new Venta();	
-	        $venta->piso_venta_id = $usuario;
-	        $venta->type = 1; // 1 ES VENTA
-	        $venta->sub_total = $request->venta['sub_total'];
-	        $venta->iva = $request->venta['iva'];
-	        $venta->total = $request->venta['total'];
-
-	        $venta->save();
-
-	        $venta->id_extra = $venta->id;
-	        $venta->save();
-
-	        foreach ($request->productos as $producto) {
-	        	//REGISTRAMOS EL PRODUCTO EN LOS DETALLES DE LA VENTA
-	            $detalles = new Detalle_venta();
-	            $detalles->venta_id = $venta->id;
-	            $detalles->cantidad = $producto['cantidad'];
-	            $detalles->inventario_id = $producto['id'];
-	            $detalles->sub_total = $producto['sub_total'];
-		        $detalles->iva = $producto['iva'];
-		        $detalles->total = $producto['total'];
-	            $detalles->save();
-
-	            //RESTAMOS DEL STOCK
-	            $inventario = Inventario_piso_venta::where('piso_venta_id', $usuario)->where('inventario_id', $producto['id'])->orderBy('id', 'desc')->first();
-
-	            $resta = $inventario->cantidad -= $producto['cantidad'];
-	            //VALICACION POR SI NO HAY SUFICIENTES PRODUCTOS
-	            if ($resta < 0) {
-
-	            	return response()->json(['errors' => 'no hay suficientes productos en el inventario']);
-	            	DB::rollback();
-	            	
-	            }
-
-	            $inventario->save();
+				    	
+	     	$productos = json_decode($request->json);
+        
+	        $invertirTotal = 0;
+	        $gananciaTotal = 0;
+	        
+	        foreach ($productos as $producto) {
+	            
+	            $invertirTotal+= $producto->pagar;
+	            $gananciaTotal+= $producto->ganancia;
 	        }
 
-	        //SUMAMOS EN EL DINERO GENERADO EN EL PISO DE VENTA
-	        $piso_venta = Piso_venta::where('user_id', $usuario)->first();
-	        $piso_venta->dinero += $venta->total;
-	        $piso_venta->save();
+	        $venta = new Venta();
+	        $venta->total = $invertirTotal;
+	        $venta->ganancia = $gananciaTotal;
+	        $venta->save();
 
+	        foreach ($productos as $producto) {
+	        
+	        	$detalle = new Detalle_venta();
+	   			$detalle->cantidad = $producto->cantidad;
+	   			$detalle->total = $producto->pagar;
+	   			$detalle->venta_id = $venta->id;
+	   			$detalle->codigos_id = $producto->id;
+	        	$detalle->save();
+
+	            $estado = new Estatu();
+	            $estado->tipo = 'venta';
+	            $estado->cantidad = $producto->cantidad;
+	            $estado->codigos_id = $producto->id;
+	            $estado->save();
+
+	            $codigo = Codigos::findOrFail($producto->id);
+		        $codigo->cantidad -= $producto->cantidad;
+		        $codigo->save();
+	        }
 	        DB::commit();
 
-	        $venta = Venta::with('detalle')->findOrFail($venta->id);
-
-	        return response()->json($venta);
+	        return back()->with('message', 'venta registrada exitosamente');
 	    	
 		}catch(Exception $e){
 

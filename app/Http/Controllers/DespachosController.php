@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+/*
 use App\Piso_venta;
 use App\Despacho;
 use Illuminate\Support\Facades\Auth;
@@ -12,15 +13,26 @@ use App\Inventory;
 use App\Despacho_detalle;
 use DB;
 use App\Precio;
+*/
 //use App\Inventory;
+use App\Codigos;
 
 class DespachosController extends Controller
 {
     //
-    public function index()
+    public function index(Request $request)
     {
+        $codigos = Codigos::orderBy('id', 'desc');
 
-    	return view('despachos.index');
+        if (isset($request->nombre)) {
+            $codigos = $codigos->whereHas('producto', function($product)use($request){
+                $product->where('name', 'like', '%'. $request->nombre.'%');
+            });
+        }
+
+        $codigos = $codigos->paginate();
+
+    	return view('despachos.index', ['codigos' => $codigos]);
     }
 
     public function get_despachos()

@@ -15,6 +15,9 @@ class CreateProductsTable extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->string('name');
+            //$table->double('precio');
+            /*
             $table->string('cost');
             $table->string('iva_percent');
             $table->string('retail_margin_gain');
@@ -28,9 +31,10 @@ class CreateProductsTable extends Migration
             $table->string('wholesale_iva_amount');
             $table->boolean('oferta')->default(0);
             $table->unsignedBigInteger('inventory_id');
+            */
             $table->timestamps();
 
-            $table->foreign('inventory_id')->references('id')->on('inventories');
+            //$table->foreign('inventory_id')->references('id')->on('inventories');
         });
     }
 
